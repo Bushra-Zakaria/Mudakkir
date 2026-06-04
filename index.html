@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مُذكِّر">
+<meta name="theme-color" content="#6C63FF">
+<title>مُذكِّر</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root{--pr:#6C63FF;--pr-d:#534AB7;--pr-l:#EEEDFE;--ok:#1D9E75;--ok-l:#E1F5EE;--er:#E24B4A;--er-l:#FCEBEB;--wn:#BA7517;--wn-l:#FAEEDA;--in:#378ADD;--in-l:#E6F1FB;--wa:#25D366;--wa-l:#d4f4e5;--bg:#F8F7FF;--card:#fff;--bd:#e8e6f0;--tx:#1a1a2e;--mu:#6b6880;--hi:#a09db8;--r:12px;--rs:8px;--rf:999px;--fn:'Tajawal',sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#12111f;--card:#1e1d2e;--bd:#2e2d42;--tx:#f0eeff;--mu:#8f8caa;--hi:#5e5c7a;--pr-l:#2a2847;--ok-l:#0d3d2e;--er-l:#3d1616;--wn-l:#3d2a06;--in-l:#0d2a3d;--wa-l:#0d3020}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--card);border-left:1px solid var(--bd);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;flex-shrink:0;z-index:10}
+.logo-area{padding:16px;border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;border-radius:9px;background:var(--pr);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.logo-text{font-size:15px;font-weight:700}
+.logo-sub{font-size:10px;color:var(--mu)}
+.sync-badge{display:flex;align-items:center;gap:6px;margin-top:10px;padding:6px 10px;border-radius:var(--rs);font-size:11px;cursor:pointer}
+.sync-ok{background:var(--ok-l);color:var(--ok)}.sync-warn{background:var(--wn-l);color:var(--wn)}.sync-err{background:var(--er-l);color:var(--er)}
+.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+.sync-ok .sync-dot{background:var(--ok)}.sync-warn .sync-dot{background:var(--wn)}.sync-err .sync-dot{background:var(--er)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-sec{font-size:10px;color:var(--hi);padding:10px 16px 3px;text-transform:uppercase;letter-spacing:.7px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;color:var(--mu);cursor:pointer;transition:all .15s;position:relative}
+.nav-item:hover{background:var(--pr-l);color:var(--pr)}
+.nav-item.active{background:var(--pr-l);color:var(--pr);font-weight:500}
+.nav-item.active::before{content:'';position:absolute;right:0;top:0;height:100%;width:3px;background:var(--pr);border-radius:3px 0 0 3px}
+.nav-item i{font-size:16px}
+.nbadge{background:var(--er);color:#fff;border-radius:var(--rf);font-size:10px;padding:1px 6px;margin-right:auto}
+.cq{padding:12px 14px;border-top:1px solid var(--bd)}
+.cq-lbl{font-size:10px;color:var(--hi);margin-bottom:7px;font-weight:500}
+.c-chip{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg);border-radius:var(--rs);margin-bottom:5px;cursor:pointer;border:1px solid var(--bd);transition:border-color .15s}
+.c-chip:hover{border-color:var(--pr)}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{padding:13px 20px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.hamburger{display:none;background:none;border:none;font-size:21px;color:var(--mu);cursor:pointer;margin-left:10px}
+.topbar-t{font-size:14px;font-weight:700}
+.topbar-s{font-size:11px;color:var(--mu)}
+.btn-add{background:var(--pr);color:#fff;border:none;border-radius:var(--rs);padding:8px 15px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--fn);font-weight:500}
+.content{flex:1;padding:16px 20px;overflow-y:auto}
+.panel{display:none}.panel.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:border-color .15s,transform .1s}
+.stat:hover{border-color:var(--pr);transform:translateY(-1px)}
+.stat.af{border-color:var(--pr);border-width:2px}
+.stat-lbl{font-size:11px;color:var(--mu);margin-bottom:5px}
+.stat-v{font-size:22px;font-weight:700}
+.stat-s{font-size:10px;color:var(--hi);margin-top:2px}
+.alert-bar{background:var(--er-l);border:1px solid #f7c1c1;border-radius:var(--rs);padding:9px 13px;display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px}
+.sec-t{font-size:12px;font-weight:500;color:var(--mu)}
+.tl{display:flex;flex-direction:column;gap:7px}
+.tc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:11px 13px;display:flex;align-items:flex-start;gap:11px;transition:border-color .15s}
+.tc:hover{border-color:var(--pr)}
+.tc.dc{opacity:.55}
+.chk{width:21px;height:21px;border-radius:50%;border:2px solid var(--bd);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.chk:hover{border-color:var(--ok)}
+.chk.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.tb{flex:1;min-width:0}
+.tt{font-size:13px;font-weight:500;margin-bottom:4px}
+.tt.stk{text-decoration:line-through;color:var(--hi)}
+.tm{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 7px;border-radius:var(--rf);font-weight:500}
+.bm{background:var(--in-l);color:#0C447C}.bt{background:var(--pr-l);color:var(--pr-d)}
+.bn{background:var(--wn-l);color:#633806}.bdo{background:var(--ok-l);color:#085041}
+.bdy{background:var(--wn-l);color:#633806}.bw{background:var(--wa-l);color:#0d5e2e}
+.bu{background:var(--er-l);color:#791F1F}
+.ttime{font-size:10px;color:var(--hi);display:flex;align-items:center;gap:3px}
+.tacts{display:flex;gap:4px;flex-shrink:0}
+.bi{background:none;border:1px solid var(--bd);border-radius:var(--rs);width:27px;height:27px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mu);font-size:13px;transition:all .15s}
+.bi:hover{background:var(--pr-l);border-color:var(--pr);color:var(--pr)}
+.bi.wab:hover{background:var(--wa-l);border-color:var(--wa);color:var(--wa)}
+.bi.dlb:hover{background:var(--er-l);border-color:var(--er);color:var(--er)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.cal-nt{font-size:14px;font-weight:700}
+.cal-nb{background:none;border:1px solid var(--bd);border-radius:var(--rs);width:29px;height:29px;cursor:pointer;color:var(--mu);font-size:13px;display:flex;align-items:center;justify-content:center}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
+.chd{font-size:10px;color:var(--hi);text-align:center;padding:3px}
+.cd{font-size:12px;text-align:center;padding:6px 3px;border-radius:var(--rs);cursor:pointer;color:var(--mu);position:relative;transition:background .1s}
+.cd:hover{background:var(--pr-l)}
+.cd.today{background:var(--pr);color:#fff;font-weight:700}
+.cd.hev::after{content:'';width:4px;height:4px;background:var(--er);border-radius:50%;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)}
+.cd.today.hev::after{background:rgba(255,255,255,.7)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px}
+.sk{border-radius:var(--r);padding:13px;min-height:115px;cursor:pointer;transition:transform .15s;position:relative;border:1px solid transparent}
+.sk:hover{transform:translateY(-3px)}
+.sy{background:#FAEEDA;border-color:#FAC775}.sp{background:#EEEDFE;border-color:#CECBF6}
+.sg{background:#EAF3DE;border-color:#C0DD97}.sb2{background:#E6F1FB;border-color:#B5D4F4}
+.sc{background:#FAECE7;border-color:#F5C4B3}
+.sk-t{font-size:12px;font-weight:700;color:#2C2C2A;margin-bottom:5px}
+.sk-b{font-size:11px;color:#5F5E5A;line-height:1.5}
+.sk-d{font-size:10px;color:#888780;margin-top:7px}
+.sk-del{position:absolute;top:7px;left:7px;background:rgba(255,255,255,.75);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;color:#888;display:none;align-items:center;justify-content:center}
+.sk:hover .sk-del{display:flex}
+.wa-box{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:15px;margin-bottom:13px}
+.wa-hdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:11px;color:var(--wa)}
+textarea{width:100%;min-height:85px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;resize:vertical;background:var(--card);color:var(--tx);font-family:var(--fn);line-height:1.6}
+textarea:focus{outline:none;border-color:var(--pr)}
+.btn-wp{background:var(--wa);color:#fff;border:none;border-radius:var(--rs);padding:8px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:var(--fn);font-weight:500;margin-top:9px}
+.wa-res{background:var(--wa-l);border-radius:var(--rs);padding:9px 11px;margin-top:9px;font-size:12px;color:#085041;display:none}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:11px}
+.cc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:13px}
+.cc-hdr{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.cf{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mu);margin-bottom:5px}
+.cf i{font-size:13px;color:var(--hi)}
+.cf span{color:var(--tx);font-weight:500}
+.cacts{display:flex;gap:5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--bd)}
+.bsm{background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:5px 9px;font-size:11px;cursor:pointer;color:var(--mu);font-family:var(--fn);display:flex;align-items:center;gap:4px;transition:all .15s}
+.bsm:hover{background:var(--pr-l);border-color:var(--pr);color:var(--pr)}
+.rpg{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px}
+.pr{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.pl{font-size:12px;width:75px;flex-shrink:0}
+.pb{flex:1;height:6px;background:var(--bg);border-radius:4px;overflow:hidden}
+.pf{height:100%;border-radius:4px;transition:width .5s}
+.pp{font-size:11px;color:var(--mu);width:30px;text-align:left}
+.fb-box{background:var(--in-l);border:1px solid #B5D4F4;border-radius:var(--r);padding:14px;margin-bottom:14px}
+.fb-box-t{font-size:13px;font-weight:500;color:#0C447C;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.fb-box p{font-size:11px;color:#185FA5;line-height:1.6;margin-bottom:8px}
+.mback{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fi .18s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:var(--r);padding:19px;width:100%;max-width:370px;border:1px solid var(--bd);animation:su .2s ease;max-height:90vh;overflow-y:auto}
+@keyframes su{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-t{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.fg{margin-bottom:11px}
+.fl{font-size:11px;color:var(--mu);margin-bottom:3px;display:block;font-weight:500}
+input[type=text],input[type=date],input[type=time],input[type=tel],select{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);font-size:13px;background:var(--card);color:var(--tx);font-family:var(--fn);outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--pr)}
+.fr{display:flex;gap:7px}
+.bp{background:var(--pr);color:#fff;border:none;border-radius:var(--rs);padding:9px;font-size:13px;cursor:pointer;width:100%;font-family:var(--fn);font-weight:500;margin-top:5px}
+.bs2{background:none;color:var(--mu);border:1px solid var(--bd);border-radius:var(--rs);padding:9px;font-size:13px;cursor:pointer;width:100%;font-family:var(--fn);margin-top:5px}
+.nover{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}
+.nbox{background:var(--card);border-radius:var(--r);padding:22px;width:310px;border:2px solid var(--er);text-align:center}
+.nbell{font-size:52px;color:var(--er);display:block;margin-bottom:10px;animation:sw .6s infinite alternate;cursor:pointer}
+@keyframes sw{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}
+.nt{font-size:15px;font-weight:700;margin-bottom:5px}
+.nb2{font-size:12px;color:var(--mu);margin-bottom:16px;line-height:1.7;white-space:pre-line}
+.nacts{display:flex;gap:7px;margin-bottom:8px}
+.nb-done{flex:1;background:var(--ok);color:#fff;border:none;border-radius:var(--rs);padding:10px;font-size:13px;cursor:pointer;font-family:var(--fn);font-weight:500}
+.nb-del{flex:1;background:var(--wn-l);color:var(--wn);border:1px solid #FAC775;border-radius:var(--rs);padding:10px;font-size:13px;cursor:pointer;font-family:var(--fn)}
+.nb-wa{width:100%;background:var(--wa);color:#fff;border:none;border-radius:var(--rs);padding:10px;font-size:13px;cursor:pointer;font-family:var(--fn);display:flex;align-items:center;justify-content:center;gap:7px}
+.delay-box{background:var(--card);border-radius:var(--r);padding:20px;width:300px;border:1px solid var(--bd);animation:su .2s ease}
+.delay-t{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.delay-sub{font-size:11px;color:var(--mu);margin-bottom:14px}
+.qbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.qb{background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:7px;font-size:12px;cursor:pointer;color:var(--tx);font-family:var(--fn);text-align:center;transition:all .15s}
+.qb:hover{background:var(--pr-l);border-color:var(--pr);color:var(--pr)}
+.d-sep{font-size:11px;color:var(--hi);text-align:center;margin-bottom:10px;position:relative}
+.d-sep::before,.d-sep::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--bd)}
+.d-sep::before{right:0}.d-sep::after{left:0}
+.mnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);padding:5px 0 calc(env(safe-area-inset-bottom,0px) + 5px);z-index:100;flex-direction:row}
+.mni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;cursor:pointer;color:var(--hi);font-size:9px;border:none;background:none;font-family:var(--fn)}
+.mni i{font-size:19px}
+.mni.active{color:var(--pr)}
+@media(max-width:680px){
+.sidebar{display:none;position:fixed;inset:0 auto 0 0;width:260px;z-index:200;overflow-y:auto}
+.sidebar.open{display:flex}
+.hamburger{display:block}
+.mnav{display:flex}.content{padding-bottom:76px}
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+.topbar{padding:9px 13px}.content{padding:11px 13px}}
+.empty{text-align:center;padding:36px 14px;color:var(--hi);font-size:12px}
+.empty i{font-size:34px;display:block;margin-bottom:7px;opacity:.35}
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 18px;border-radius:var(--rf);font-size:12px;font-weight:500;z-index:3000;animation:ti .25s ease;white-space:nowrap}
+@keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.exp-btn{border-radius:var(--r);padding:12px 8px;cursor:pointer;font-family:var(--fn);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;font-weight:500;border:1px solid}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar" id="sb">
+  <div class="logo-area">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-bell-ringing"></i></div>
+      <div><div class="logo-text">مُذكِّر</div><div class="logo-sub">المساعد الذكي للمواعيد</div></div>
+    </div>
+    <div class="sync-badge sync-warn" id="syncbadge" onclick="syncNow()">
+      <div class="sync-dot"></div><span id="synclbl">اضغط لإعداد المزامنة</span>
+      <i class="ti ti-refresh" style="margin-right:auto;font-size:12px"></i>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">الرئيسية</div>
+    <div class="nav-item active" onclick="sp('home',this)"><i class="ti ti-layout-dashboard"></i>لوحة التحكم<span class="nbadge" id="nbt" style="display:none">0</span></div>
+    <div class="nav-item" onclick="sp('tasks',this)"><i class="ti ti-checkbox"></i>المهام</div>
+    <div class="nav-item" onclick="sp('calendar',this)"><i class="ti ti-calendar"></i>المواعيد</div>
+    <div class="nav-item" onclick="sp('sticky',this)"><i class="ti ti-note"></i>الملاحظات</div>
+    <div class="nav-sec">الأدوات</div>
+    <div class="nav-item" onclick="sp('wa',this)"><i class="ti ti-brand-whatsapp"></i>استيراد واتساب</div>
+    <div class="nav-item" onclick="sp('contacts',this)"><i class="ti ti-users"></i>جهات التذكير</div>
+    <div class="nav-item" onclick="sp('sync',this)"><i class="ti ti-cloud"></i>المزامنة</div>
+    <div class="nav-item" onclick="sp('reports',this)"><i class="ti ti-chart-bar"></i>التقارير</div>
+  </nav>
+  <div class="cq">
+    <div class="cq-lbl">إرسال سريع واتساب</div>
+    <div id="cmini"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <button class="hamburger" onclick="toggleSB()"><i class="ti ti-menu-2"></i></button>
+      <div><div class="topbar-t" id="ptitle">لوحة التحكم</div><div class="topbar-s" id="dtlbl"></div></div>
+    </div>
+    <button class="btn-add" onclick="openAdd()"><i class="ti ti-plus"></i>إضافة</button>
+  </div>
+  <div class="content">
+
+    <div id="panel-home" class="panel active">
+      <div id="alertarea"></div>
+      <div class="stats-grid">
+        <div class="stat" onclick="filterHome('today')" id="sc0"><div class="stat-lbl">اليوم</div><div class="stat-v" id="s0" style="color:var(--pr)">0</div><div class="stat-s">مهام متبقية</div></div>
+        <div class="stat" onclick="filterHome('done')" id="sc1"><div class="stat-lbl">مكتملة</div><div class="stat-v" id="s1" style="color:var(--ok)">0</div><div class="stat-s">هذا الأسبوع</div></div>
+        <div class="stat" onclick="filterHome('delayed')" id="sc2"><div class="stat-lbl">مؤجلة</div><div class="stat-v" id="s2" style="color:var(--wn)">0</div><div class="stat-s">تحتاج مراجعة</div></div>
+        <div class="stat" onclick="filterHome('meeting')" id="sc3"><div class="stat-lbl">اجتماعات</div><div class="stat-v" id="s3" style="color:var(--in)">0</div><div class="stat-s">هذا الأسبوع</div></div>
+        <div class="stat" style="grid-column:1/-1;background:var(--er-l);border-color:#f7c1c1" onclick="filterHome('urgent')"><div class="stat-lbl" style="color:var(--er)"><i class="ti ti-bolt" style="font-size:11px"></i> المهام العاجلة</div><div class="stat-v" id="s4" style="color:var(--er);font-size:18px">0</div><div class="stat-s" style="color:var(--er)">اضغط للعرض</div></div>
+      </div>
+      <div class="sec-hdr">
+        <div class="sec-t" id="hft">مهام اليوم</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button id="sndbtn" onclick="toggleSound()" style="background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:4px 9px;font-size:11px;cursor:pointer;color:var(--mu);display:flex;align-items:center;gap:4px;font-family:var(--fn)"><i class="ti ti-volume" id="sndicon"></i><span id="sndlbl">صوت</span></button>
+          <button onclick="filterHome('all')" style="background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:4px 9px;font-size:11px;cursor:pointer;color:var(--mu);font-family:var(--fn)">الكل</button>
+        </div>
+      </div>
+      <div class="tl" id="htasks"></div>
+    </div>
+
+    <div id="panel-tasks" class="panel"><div class="tl" id="atasks"></div></div>
+
+    <div id="panel-calendar" class="panel">
+      <div class="cal-nav">
+        <button class="cal-nb" onclick="chM(-1)"><i class="ti ti-chevron-right"></i></button>
+        <div class="cal-nt" id="cmt"></div>
+        <button class="cal-nb" onclick="chM(1)"><i class="ti ti-chevron-left"></i></button>
+      </div>
+      <div class="cg" id="calh"></div>
+      <div class="cg" id="cald"></div>
+      <div class="sec-hdr"><div class="sec-t" id="cetitle">مواعيد الشهر</div></div>
+      <div class="tl" id="calevents"></div>
+    </div>
+
+    <div id="panel-sticky" class="panel">
+      <div style="margin-bottom:12px"><button class="btn-add" onclick="openAddSticky()"><i class="ti ti-plus"></i>إضافة ملاحظة</button></div>
+      <div class="sgrid" id="sgrid"></div>
+    </div>
+
+    <div id="panel-wa" class="panel">
+      <div class="wa-box">
+        <div class="wa-hdr"><i class="ti ti-brand-whatsapp"></i>الصق رسالة واتساب هنا</div>
+        <textarea id="wainput" placeholder="مثال: الرجاء تذكيري باجتماع مجلس الإدارة يوم الأحد 8 يونيو الساعة 10 صباحاً&#10;&#10;الصق الرسالة وسيتم استخراج الموعد تلقائياً..."></textarea>
+        <button class="btn-wp" onclick="parseWA()"><i class="ti ti-magic-wand"></i>استخراج وحفظ الموعد تلقائياً</button>
+        <div class="wa-res" id="wares"></div>
+      </div>
+      <div class="sec-hdr"><div class="sec-t">المهام المستوردة من واتساب</div></div>
+      <div class="tl" id="watasks"></div>
+    </div>
+
+    <div id="panel-contacts" class="panel">
+      <div style="margin-bottom:13px"><button class="btn-add" onclick="openAddContact()"><i class="ti ti-user-plus"></i>إضافة جهة</button></div>
+      <div class="cgrid" id="cgrid"></div>
+    </div>
+
+    <div id="panel-sync" class="panel">
+      <div class="fb-box" id="fbsetup">
+        <div class="fb-box-t"><i class="ti ti-cloud" style="font-size:18px"></i>إعداد المزامنة بين الأجهزة</div>
+        <p>لمزامنة البيانات بين جوالك وكمبيوترك نستخدم Firebase مجاناً. أدخل بيانات مشروعك:</p>
+        <div class="fg"><label class="fl">Project ID</label><input type="text" id="fb-pid" placeholder="mudakkir-a5b3b"></div>
+        <div class="fg"><label class="fl">API Key</label><input type="text" id="fb-key" placeholder="AIzaSy..."></div>
+        <div class="fg"><label class="fl">معرف سري (كلمة من اختيارك)</label><input type="text" id="fb-uid" placeholder="arjan2026"></div>
+        <button class="bp" onclick="setupFirebase()"><i class="ti ti-plug"></i> اتصال وتفعيل المزامنة</button>
+      </div>
+      <div id="fb-ok" style="display:none;background:var(--ok-l);border:1px solid var(--ok);border-radius:var(--r);padding:14px">
+        <div style="font-size:13px;font-weight:500;color:var(--ok);margin-bottom:6px"><i class="ti ti-circle-check"></i> المزامنة فعالة</div>
+        <div style="font-size:11px;color:#085041" id="fb-info"></div>
+        <button class="bs2" style="margin-top:10px;color:var(--er);border-color:var(--er)" onclick="disconnectFB()">قطع الاتصال</button>
+      </div>
+    </div>
+
+    <div id="panel-reports" class="panel">
+      <div class="rpg">
+        <div class="stat"><div class="stat-lbl">إجمالي المهام</div><div class="stat-v" id="r0">0</div></div>
+        <div class="stat"><div class="stat-lbl">نسبة الإنجاز</div><div class="stat-v" id="r1" style="color:var(--ok)">0%</div></div>
+        <div class="stat"><div class="stat-lbl">اجتماعات</div><div class="stat-v" id="r2" style="color:var(--in)">0</div></div>
+        <div class="stat"><div class="stat-lbl">مؤجلة</div><div class="stat-v" id="r3" style="color:var(--wn)">0</div></div>
+      </div>
+      <div class="sec-t" style="margin-bottom:9px">توزيع المهام</div>
+      <div id="rbars"></div>
+      <div class="sec-hdr" style="margin-top:18px">
+        <div class="sec-t">سجل المهام</div>
+        <select id="rfilter" onchange="renderRTasks()" style="font-size:11px;padding:4px 8px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);color:var(--tx);font-family:var(--fn)">
+          <option value="all">الكل</option>
+          <option value="pending">قيد التنفيذ</option>
+          <option value="done">مكتملة</option>
+          <option value="delayed">مؤجلة</option>
+          <option value="meeting">اجتماعات</option>
+          <option value="urgent">عاجلة</option>
+        </select>
+      </div>
+      <div class="tl" id="rtasks"></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bd)">
+        <div class="sec-t" style="margin-bottom:12px">تصدير ومشاركة</div>
+        <div class="export-grid">
+          <button class="exp-btn" onclick="exportPDF('all')" style="background:var(--er-l);border-color:#f7c1c1;color:#791F1F"><i class="ti ti-file-type-pdf" style="font-size:22px"></i>تصدير الكل PDF</button>
+          <button class="exp-btn" onclick="exportPDF('filtered')" style="background:var(--pr-l);border-color:#CECBF6;color:var(--pr-d)"><i class="ti ti-file-export" style="font-size:22px"></i>تصدير المحدد</button>
+          <button class="exp-btn" onclick="shareReportWA()" style="background:var(--wa-l);border-color:#9FE1CB;color:#085041"><i class="ti ti-brand-whatsapp" style="font-size:22px;color:var(--wa)"></i>مشاركة واتساب</button>
+          <button class="exp-btn" onclick="exportPDF('print')" style="background:var(--in-l);border-color:#B5D4F4;color:#0C447C"><i class="ti ti-printer" style="font-size:22px"></i>طباعة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="mnav">
+  <button class="mni active" onclick="sp('home',this,1)"><i class="ti ti-layout-dashboard"></i>الرئيسية</button>
+  <button class="mni" onclick="sp('tasks',this,1)"><i class="ti ti-checkbox"></i>المهام</button>
+  <button class="mni" onclick="sp('calendar',this,1)"><i class="ti ti-calendar"></i>المواعيد</button>
+  <button class="mni" onclick="sp('wa',this,1)"><i class="ti ti-brand-whatsapp"></i>واتساب</button>
+  <button class="mni" onclick="sp('sync',this,1)"><i class="ti ti-cloud"></i>مزامنة</button>
+</div>
+
+<div class="nover" id="nover">
+  <div class="nbox">
+    <i class="ti ti-bell-ringing nbell" id="nbellicon" onclick="toggleSoundFromBell()" title="اضغط لتصميت الصوت"></i>
+    <div id="nbellmuted" style="display:none;font-size:11px;color:var(--mu);margin-bottom:6px;background:var(--bg);border-radius:var(--rf);padding:3px 10px"><i class="ti ti-volume-off"></i> الصوت مكتوم</div>
+    <div class="nt" id="ntitle">تذكير!</div>
+    <div class="nb2" id="nbody"></div>
+    <div class="nacts">
+      <button class="nb-done" onclick="closeN('done')"><i class="ti ti-check"></i> تم الإنجاز</button>
+      <button class="nb-del" onclick="showDelay()"><i class="ti ti-calendar-event"></i> تأجيل لوقت آخر</button>
+    </div>
+    <button class="nb-wa" onclick="sendViaWA()"><i class="ti ti-brand-whatsapp"></i>إرسال للمسؤول عبر واتساب</button>
+  </div>
+</div>
+
+<div class="nover" id="delay-over">
+  <div class="delay-box">
+    <div class="delay-t"><i class="ti ti-calendar-event" style="color:var(--wn)"></i>اختر موعد التأجيل</div>
+    <div class="delay-sub">خيارات سريعة أو حدد التاريخ والوقت يدوياً</div>
+    <div class="qbtns">
+      <button class="qb" onclick="quickDelay(30,'30 دقيقة')">بعد 30 دقيقة</button>
+      <button class="qb" onclick="quickDelay(60,'ساعة')">بعد ساعة</button>
+      <button class="qb" onclick="quickDelay(1440,'يوم')">غداً</button>
+      <button class="qb" onclick="quickDelay(10080,'أسبوع')">الأسبوع القادم</button>
+      <button class="qb" onclick="quickDelay(20160,'أسبوعين')">بعد أسبوعين</button>
+      <button class="qb" onclick="quickDelay(43200,'شهر')">الشهر القادم</button>
+    </div>
+    <div class="d-sep">أو حدد يدوياً</div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="ddate"></div>
+      <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="dtime" value="09:00"></div>
+    </div>
+    <button style="background:var(--pr);color:#fff;border:none;border-radius:var(--rs);padding:9px;font-size:13px;cursor:pointer;width:100%;font-family:var(--fn);font-weight:500;margin-top:6px" onclick="confirmDelay()"><i class="ti ti-check"></i> تأكيد التأجيل</button>
+    <button style="background:none;color:var(--mu);border:1px solid var(--bd);border-radius:var(--rs);padding:8px;font-size:12px;cursor:pointer;width:100%;font-family:var(--fn);margin-top:5px" onclick="cancelDelay()">إلغاء</button>
+  </div>
+</div>
+
+<div id="mroot"></div>
+
+<script>
+const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const DN=['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+const MMP={يناير:'01',فبراير:'02',مارس:'03',أبريل:'04',مايو:'05',يونيو:'06',يوليو:'07',أغسطس:'08',سبتمبر:'09',أكتوبر:'10',نوفمبر:'11',ديسمبر:'12'};
+const AVC=['#6C63FF','#1D9E75','#378ADD','#D85A30','#D4537E','#BA7517'];
+function gs(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function tstr(){return new Date().toISOString().split('T')[0];}
+function fd(d){if(!d)return'';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function gi(n){return n?n.trim().split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase():'';}
+
+let tasks=gs('mz4_t',[]);
+let notes=gs('mz4_n',[]);
+let contacts=gs('mz4_c',[]);
+let nid=gs('mz4_nid',1);
+let calY=new Date().getFullYear(),calM=new Date().getMonth();
+let curN=null,_fired={},curFilter='today';
+let fbConfig=gs('mz4_fb',null),syncActive=false;
+let soundOn=gs('mz4_snd',true),alarmInt=null,audioCtx=null,audioUnlocked=false;
+let _pickerMsg='',_pickerFromNotif=false,_selectedContacts=new Set();
+
+function save(){
+  ss('mz4_t',tasks);ss('mz4_n',notes);ss('mz4_c',contacts);ss('mz4_nid',nid);
+  if(syncActive)pushToFB();
+}
+
+function setupFirebase(){
+  const pid=document.getElementById('fb-pid').value.trim();
+  const key=document.getElementById('fb-key').value.trim();
+  const uid=document.getElementById('fb-uid').value.trim();
+  if(!pid||!key||!uid){alert('يرجى تعبئة جميع الحقول');return;}
+  fbConfig={pid,key,uid};ss('mz4_fb',fbConfig);initFirebase();
+}
+
+function initFirebase(){
+  if(!fbConfig)return;
+  const{pid,key,uid}=fbConfig;
+  fbConfig._url=`https://${pid}-default-rtdb.asia-southeast1.firebasedatabase.app/mudakkir/${uid}.json?auth=${key}`;
+  syncActive=true;
+  updateSyncBadge('ok','المزامنة فعالة');
+  document.getElementById('fbsetup').style.display='none';
+  document.getElementById('fb-ok').style.display='block';
+  document.getElementById('fb-info').textContent=`Project: ${pid} | المعرف: ${uid}`;
+  pullFromFB();setInterval(()=>pullFromFB(),5000);
+}
+
+function pushToFB(){
+  if(!syncActive||!fbConfig._url)return;
+  const ver=(gs('mz4_ver',0))+1;ss('mz4_ver',ver);
+  fetch(fbConfig._url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks,notes,contacts,nid,ver,ts:Date.now()})})
+    .then(()=>updateSyncBadge('ok','تمت المزامنة '+new Date().toLocaleTimeString('ar')))
+    .catch(()=>updateSyncBadge('err','خطأ في المزامنة'));
+}
+
+function pullFromFB(){
+  if(!syncActive||!fbConfig._url)return;
+  fetch(fbConfig._url+'&t='+Date.now())
+    .then(r=>r.json())
+    .then(data=>{
+      if(data&&data.ver!==undefined){
+        const rv=data.ver,lv=gs('mz4_ver',0);
+        if(rv>lv){
+          tasks=data.tasks||[];notes=data.notes||[];contacts=data.contacts||[];nid=data.nid||nid;
+          ss('mz4_t',tasks);ss('mz4_n',notes);ss('mz4_c',contacts);ss('mz4_nid',nid);ss('mz4_ver',rv);
+          renderAll();toast('تمت المزامنة من جهاز آخر');
+        }
+        updateSyncBadge('ok','مزامنة فعالة');
+      }
+    }).catch(()=>updateSyncBadge('warn','لا يوجد اتصال'));
+}
+
+function updateSyncBadge(t,m){
+  document.getElementById('syncbadge').className='sync-badge sync-'+t;
+  document.getElementById('synclbl').textContent=m;
+}
+function disconnectFB(){fbConfig=null;ss('mz4_fb',null);syncActive=false;updateSyncBadge('warn','اضغط لإعداد المزامنة');document.getElementById('fbsetup').style.display='block';document.getElementById('fb-ok').style.display='none';toast('تم قطع الاتصال');}
+function syncNow(){if(syncActive)pushToFB();else sp('sync');}
+
+function tc(t){
+  const done=t.status==='done',del=t.status==='delayed';
+  const tb=t.type==='meeting'?'<span class="badge bm">اجتماع</span>':t.type==='task'?'<span class="badge bt">مهمة</span>':'<span class="badge bn">ملاحظة</span>';
+  const sb=done?'<span class="badge bdo">مكتمل</span>':del?'<span class="badge bdy">مؤجل</span>':'';
+  const wb=t.src==='wa'?'<span class="badge bw">واتساب</span>':'';
+  const ub=(t.prio==='high'&&!done)?'<span class="badge bu">عاجل</span>':'';
+  const di=del&&t.delayDate?`<span class="ttime"><i class="ti ti-calendar-event" style="font-size:11px;color:var(--wn)"></i>مؤجل: ${fd(t.delayDate)} ${t.delayTime||''}</span>`:'';
+  return`<div class="tc${done?' dc':''}" id="tc${t.id}">
+    <div class="chk${done?' done':''}" onclick="tgl(${t.id})">${done?'<i class="ti ti-check"></i>':''}</div>
+    <div class="tb"><div class="tt${done?' stk':''}">${t.title}</div>
+    <div class="tm">${tb}${sb}${wb}${ub}<span class="ttime"><i class="ti ti-calendar" style="font-size:11px"></i>${fd(t.date)}${t.time?' — '+t.time:''}</span>${di}</div></div>
+    <div class="tacts">
+      ${!done?`<button class="bi" onclick="tgl(${t.id})"><i class="ti ti-check"></i></button>`:''}
+      <button class="bi wab" onclick="twA(${t.id})"><i class="ti ti-brand-whatsapp"></i></button>
+      <button class="bi" onclick="editT(${t.id})"><i class="ti ti-edit"></i></button>
+      <button class="bi dlb" onclick="delT(${t.id})"><i class="ti ti-trash"></i></button>
+    </div></div>`;}
+
+function renderAll(){
+  const ts=tstr(),done=tasks.filter(t=>t.status==='done'),del=tasks.filter(t=>t.status==='delayed'),mtg=tasks.filter(t=>t.type==='meeting'),urg=tasks.filter(t=>t.date===ts&&t.status==='pending');
+  document.getElementById('s0').textContent=urg.length;
+  document.getElementById('s1').textContent=done.length;
+  document.getElementById('s2').textContent=del.length;
+  document.getElementById('s3').textContent=mtg.length;
+  document.getElementById('s4').textContent=tasks.filter(t=>t.prio==='high'&&t.status!=='done').length;
+  const nb=document.getElementById('nbt');nb.textContent=urg.length;nb.style.display=urg.length?'inline':'none';
+  const aa=document.getElementById('alertarea');
+  aa.innerHTML=urg.length?`<div class="alert-bar"><i class="ti ti-bell-exclamation" style="color:var(--er);font-size:17px"></i><div style="flex:1;font-size:12px;color:var(--er);font-weight:500">لديك ${urg.length} مهمة عاجلة اليوم</div><button style="background:none;border:none;cursor:pointer;color:var(--er)" onclick="this.parentElement.remove()"><i class="ti ti-x"></i></button></div>`:'';
+  filterHome(curFilter);
+  document.getElementById('atasks').innerHTML=tasks.length?tasks.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>لا توجد مهام</div>';
+  document.getElementById('watasks').innerHTML=tasks.filter(t=>t.src==='wa').map(tc).join('')||'<div class="empty"><i class="ti ti-brand-whatsapp"></i>لا توجد مهام مستوردة</div>';
+  document.getElementById('r0').textContent=tasks.length;
+  document.getElementById('r1').textContent=tasks.length?Math.round(done.length/tasks.length*100)+'%':'0%';
+  document.getElementById('r2').textContent=mtg.length;
+  document.getElementById('r3').textContent=del.length;
+  const tp=[{l:'اجتماعات',c:mtg.length,col:'var(--in)'},{l:'مهام',c:tasks.filter(t=>t.type==='task').length,col:'var(--pr)'},{l:'مكتملة',c:done.length,col:'var(--ok)'},{l:'مؤجلة',c:del.length,col:'var(--wn)'}];
+  document.getElementById('rbars').innerHTML=tp.map(x=>`<div class="pr"><div class="pl">${x.l}</div><div class="pb"><div class="pf" style="width:${tasks.length?Math.round(x.c/tasks.length*100):0}%;background:${x.col}"></div></div><div class="pp">${x.c}</div></div>`).join('');
+  renderRTasks();renderCal();renderNotes();renderContacts();renderCMini();
+}
+
+function filterHome(type){
+  curFilter=type;
+  document.querySelectorAll('#sc0,#sc1,#sc2,#sc3').forEach(s=>s.classList.remove('af'));
+  const map={today:'sc0',done:'sc1',delayed:'sc2',meeting:'sc3'};
+  if(map[type])document.getElementById(map[type]).classList.add('af');
+  const ftitles={today:'مهام اليوم',done:'المهام المكتملة',delayed:'المهام المؤجلة',meeting:'الاجتماعات',urgent:'المهام العاجلة',all:'جميع المهام'};
+  document.getElementById('hft').textContent=ftitles[type]||'المهام';
+  const ts=tstr();
+  let list=type==='today'?tasks.filter(t=>t.date===ts&&t.status!=='done'):type==='done'?tasks.filter(t=>t.status==='done'):type==='delayed'?tasks.filter(t=>t.status==='delayed'):type==='meeting'?tasks.filter(t=>t.type==='meeting'):type==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
+  document.getElementById('htasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>لا توجد مهام في هذه الفئة</div>';
+}
+
+function renderRTasks(){
+  const f=document.getElementById('rfilter');
+  const v=f?f.value:'all';
+  let list=v==='pending'?tasks.filter(t=>t.status==='pending'):v==='done'?tasks.filter(t=>t.status==='done'):v==='delayed'?tasks.filter(t=>t.status==='delayed'):v==='meeting'?tasks.filter(t=>t.type==='meeting'):v==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
+  document.getElementById('rtasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>لا توجد مهام</div>';
+}
+
+function renderCal(){
+  document.getElementById('cmt').textContent=`${MN[calM]} ${calY}`;
+  document.getElementById('calh').innerHTML=['أ','إ','ث','أر','خ','ج','س'].map(d=>`<div class="chd">${d}</div>`).join('');
+  const first=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate();
+  let h='';for(let i=0;i<first;i++)h+=`<div></div>`;
+  for(let d=1;d<=dim;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const it=ds===tstr(),he=tasks.some(t=>t.date===ds||t.delayDate===ds);h+=`<div class="cd${it?' today':''}${he?' hev':''}" onclick="fbd('${ds}')">${d}</div>`;}
+  document.getElementById('cald').innerHTML=h;
+  const ev=tasks.filter(t=>t.date&&t.date.startsWith(`${calY}-${String(calM+1).padStart(2,'0')}`));
+  document.getElementById('calevents').innerHTML=ev.length?ev.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar"></i>لا توجد مواعيد</div>';
+}
+function fbd(ds){document.getElementById('cetitle').textContent=`مواعيد ${fd(ds)}`;const ev=tasks.filter(t=>t.date===ds||t.delayDate===ds);document.getElementById('calevents').innerHTML=ev.length?ev.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>لا مواعيد في هذا اليوم</div>';}
+function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
+
+function renderNotes(){document.getElementById('sgrid').innerHTML=notes.map(n=>`<div class="sk ${n.color}"><button class="sk-del" onclick="delNote(${n.id})"><i class="ti ti-x"></i></button><div class="sk-t">${n.title}</div><div class="sk-b">${n.text}</div><div class="sk-d">${n.date}</div></div>`).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ti ti-note"></i>لا توجد ملاحظات</div>';}
+function renderContacts(){document.getElementById('cgrid').innerHTML=contacts.map(c=>`<div class="cc"><div class="cc-hdr"><div class="av" style="background:${c.color}20;color:${c.color};font-size:11px">${c.ini||gi(c.name)}</div><div><div style="font-size:13px;font-weight:500">${c.name}</div><div style="font-size:10px;color:var(--mu)">${c.role||''}</div></div></div><div class="cf"><i class="ti ti-phone"></i><span>+${c.phone}</span></div><div class="cacts"><button class="bsm" onclick="waSend(${c.id})"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i>إرسال</button><button class="bsm" onclick="editC(${c.id})"><i class="ti ti-edit"></i>تعديل</button><button class="bsm" onclick="delC(${c.id})" style="color:var(--er)"><i class="ti ti-trash"></i>حذف</button></div></div>`).join('')||'<div class="empty"><i class="ti ti-users"></i>لا توجد جهات اتصال</div>';}
+function renderCMini(){document.getElementById('cmini').innerHTML=contacts.slice(0,3).map(c=>`<div class="c-chip" onclick="waSend(${c.id})"><div class="av" style="background:${c.color}20;color:${c.color}">${c.ini||gi(c.name)}</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div style="font-size:10px;color:var(--mu)">+${c.phone}</div></div><i class="ti ti-brand-whatsapp" style="color:var(--wa);font-size:13px"></i></div>`).join('');}
+
+const ptitles={home:'لوحة التحكم',tasks:'المهام',calendar:'المواعيد',sticky:'الملاحظات',wa:'استيراد واتساب',contacts:'جهات التذكير',sync:'المزامنة',reports:'التقارير'};
+function sp(name,el,mob=0){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(!mob){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');}
+  else{document.querySelectorAll('.mni').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');}
+  document.getElementById('ptitle').textContent=ptitles[name]||name;
+  if(mob)document.getElementById('sb').classList.remove('open');
+  renderAll();}
+function toggleSB(){document.getElementById('sb').classList.toggle('open');}
+function tgl(id){const t=tasks.find(t=>t.id===id);if(!t)return;t.status=t.status==='done'?'pending':'done';save();renderAll();}
+function delT(id){if(!confirm('هل تريد حذف هذه المهمة؟'))return;tasks=tasks.filter(t=>t.id!==id);save();renderAll();}
+function delNote(id){notes=notes.filter(n=>n.id!==id);save();renderAll();}
+function delC(id){if(!confirm('حذف جهة الاتصال؟'))return;contacts=contacts.filter(c=>c.id!==id);save();renderAll();}
+
+function twA(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}
+  showContactPicker('تذكير: '+t.title+'\nالتاريخ: '+fd(t.date)+(t.time?' الساعة '+t.time:''));}
+
+function sendViaWA(){
+  if(!curN)return;const t=tasks.find(t=>t.id===curN);if(!t)return;
+  if(!contacts.length){toast('أضف جهة اتصال أولاً');closeN(null);return;}
+  stopAlarm();document.getElementById('nover').style.display='none';
+  showContactPicker('تذكير: '+t.title+'\nالتاريخ: '+fd(t.date)+(t.time?' الساعة '+t.time:''),true);}
+
+function waSend(cid){
+  const c=contacts.find(c=>c.id===cid);if(!c)return;
+  const urg=tasks.filter(t=>t.status==='pending'&&t.date===tstr());
+  const msg=urg.length?'تذكير بالمواعيد:\n'+urg.map(t=>'- '+t.title+(t.time?' '+t.time:'')).join('\n'):'لا توجد مواعيد عاجلة اليوم.';
+  window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(msg)}`,'_blank');}
+
+function showContactPicker(msg,fromNotif=false){
+  _pickerMsg=msg;_pickerFromNotif=fromNotif;_selectedContacts=new Set();renderPicker();}
+
+function renderPicker(){
+  const list=contacts.map(c=>{const sel=_selectedContacts.has(c.id);
+    return`<div onclick="togglePick(${c.id})" style="display:flex;align-items:center;gap:12px;padding:11px 13px;border:2px solid ${sel?'var(--wa)':'var(--bd)'};border-radius:var(--r);cursor:pointer;background:${sel?'var(--wa-l)':'var(--card)'};transition:all .15s">
+      <div class="av" style="background:${c.color}20;color:${c.color};font-size:13px;width:38px;height:38px">${c.ini||gi(c.name)}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${c.name}</div><div style="font-size:11px;color:var(--mu)">${c.role||''} — +${c.phone}</div></div>
+      <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${sel?'var(--wa)':'var(--bd)'};background:${sel?'var(--wa)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${sel?'<i class="ti ti-check" style="font-size:12px;color:#fff"></i>':''}</div>
+    </div>`;}).join('');
+  const cnt=_selectedContacts.size;
+  M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i>اختر من تريد إرسال التذكير له</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:10px">يمكنك اختيار أكثر من شخص</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">${list}</div>
+    <button style="background:var(--wa);color:#fff;border:none;border-radius:var(--rs);padding:10px;font-size:13px;cursor:pointer;width:100%;font-family:var(--fn);font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px" onclick="sendToSelected()">
+      <i class="ti ti-brand-whatsapp"></i>إرسال ${cnt>0?'إلى '+cnt+' شخص':'— اختر شخصاً أولاً'}
+    </button>
+    <button class="bs2" onclick="closeM()" style="margin-top:6px">إلغاء</button>
+  </div></div>`);}
+
+function togglePick(id){if(_selectedContacts.has(id))_selectedContacts.delete(id);else _selectedContacts.add(id);renderPicker();}
+function sendToSelected(){
+  if(!_selectedContacts.size)return;
+  const phones=contacts.filter(c=>_selectedContacts.has(c.id));
+  closeM();
+  phones.forEach((c,i)=>setTimeout(()=>window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(_pickerMsg)}`,'_blank'),i*600));
+  if(_pickerFromNotif)curN=null;
+  toast(`تم فتح واتساب لـ ${phones.length} شخص`);}
+
+function M(h){document.getElementById('mroot').innerHTML=h;}
+function closeM(){document.getElementById('mroot').innerHTML='';}
+
+function openAdd(){M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-plus" style="color:var(--pr)"></i>إضافة مهمة أو موعد</div>
+    <div class="fg"><label class="fl">العنوان</label><input type="text" id="mt" placeholder="اكتب هنا..."></div>
+    <div class="fr"><div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task">مهمة</option><option value="meeting">اجتماع</option><option value="note">ملاحظة</option></select></div>
+    <div class="fg" style="flex:1"><label class="fl">الأولوية</label><select id="mpr"><option value="high">عاجل</option><option value="normal">عادي</option></select></div></div>
+    <div class="fr"><div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${tstr()}"></div>
+    <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="09:00"></div></div>
+    <button class="bp" onclick="saveTask()">حفظ</button><button class="bs2" onclick="closeM()">إلغاء</button>
+  </div></div>`);}
+
+function editT(id){const t=tasks.find(t=>t.id===id);if(!t)return;
+  M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-edit" style="color:var(--pr)"></i>تعديل المهمة</div>
+    <div class="fg"><label class="fl">العنوان</label><input type="text" id="mt" value="${t.title.replace(/"/g,'&quot;')}"></div>
+    <div class="fr"><div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task"${t.type==='task'?' selected':''}>مهمة</option><option value="meeting"${t.type==='meeting'?' selected':''}>اجتماع</option><option value="note"${t.type==='note'?' selected':''}>ملاحظة</option></select></div>
+    <div class="fg" style="flex:1"><label class="fl">الحالة</label><select id="mst"><option value="pending"${t.status==='pending'?' selected':''}>قيد التنفيذ</option><option value="done"${t.status==='done'?' selected':''}>مكتمل</option><option value="delayed"${t.status==='delayed'?' selected':''}>مؤجل</option></select></div></div>
+    <div class="fr"><div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${t.date}"></div>
+    <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="${t.time||'09:00'}"></div></div>
+    <button class="bp" onclick="updTask(${id})">حفظ التعديلات</button><button class="bs2" onclick="closeM()">إلغاء</button>
+  </div></div>`);}
+
+function saveTask(){const tt=document.getElementById('mt').value.trim();if(!tt){alert('يرجى كتابة العنوان');return;}
+  tasks.push({id:nid++,title:tt,type:document.getElementById('mtp').value,date:document.getElementById('md').value,time:document.getElementById('mti').value,status:'pending',src:'manual',prio:document.getElementById('mpr').value});
+  save();closeM();renderAll();toast('تم الحفظ');}
+
+function updTask(id){const t=tasks.find(t=>t.id===id);if(!t)return;
+  t.title=document.getElementById('mt').value.trim();t.type=document.getElementById('mtp').value;
+  t.status=document.getElementById('mst').value;t.date=document.getElementById('md').value;t.time=document.getElementById('mti').value;
+  save();closeM();renderAll();toast('تم التحديث');}
+
+function openAddSticky(){M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-note" style="color:var(--wn)"></i>إضافة ملاحظة</div>
+    <div class="fg"><label class="fl">العنوان</label><input type="text" id="nt" placeholder="عنوان الملاحظة..."></div>
+    <div class="fg"><label class="fl">النص</label><textarea id="nb" placeholder="اكتب ملاحظتك هنا..." style="min-height:70px"></textarea></div>
+    <div class="fg"><label class="fl">اللون</label><select id="nc"><option value="sy">أصفر</option><option value="sp">بنفسجي</option><option value="sg">أخضر</option><option value="sb2">أزرق</option><option value="sc">مرجاني</option></select></div>
+    <button class="bp" onclick="saveNote()">حفظ</button><button class="bs2" onclick="closeM()">إلغاء</button>
+  </div></div>`);}
+
+function saveNote(){const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
+  if(!tt||!nb){alert('يرجى تعبئة جميع الحقول');return;}
+  const d=new Date();notes.push({id:nid++,title:tt,text:nb,color:document.getElementById('nc').value,date:`${d.getDate()} ${MN[d.getMonth()]}`});
+  save();closeM();renderAll();toast('تمت إضافة الملاحظة');}
+
+function openAddContact(eid=null){const c=eid?contacts.find(c=>c.id===eid):null;
+  M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-user-plus" style="color:var(--pr)"></i>${c?'تعديل جهة الاتصال':'إضافة جهة اتصال'}</div>
+    <div class="fg"><label class="fl">الاسم</label><input type="text" id="cname" value="${c?c.name:''}" placeholder="اسم الشخص..."></div>
+    <div class="fg"><label class="fl">الصفة / الدور</label><input type="text" id="crole" value="${c?c.role:''}" placeholder="مثال: المدير العام"></div>
+    <div class="fg"><label class="fl">رقم الجوال (مع رمز الدولة بدون +)</label><input type="tel" id="cphone" value="${c?c.phone:''}" placeholder="966501234567" dir="ltr"></div>
+    <button class="bp" onclick="${c?'updC('+eid+')':'saveC()'}">${c?'حفظ التعديلات':'إضافة'}</button>
+    <button class="bs2" onclick="closeM()">إلغاء</button>
+  </div></div>`);}
+
+function editC(id){openAddContact(id);}
+function saveC(){const n=document.getElementById('cname').value.trim(),p=document.getElementById('cphone').value.trim().replace(/\D/g,'');
+  if(!n||!p){alert('يرجى إدخال الاسم والرقم');return;}
+  contacts.push({id:nid++,name:n,role:document.getElementById('crole').value.trim(),phone:p,color:AVC[contacts.length%AVC.length],ini:gi(n)});
+  save();closeM();renderAll();toast('تمت الإضافة');}
+function updC(id){const c=contacts.find(c=>c.id===id);if(!c)return;
+  c.name=document.getElementById('cname').value.trim();c.role=document.getElementById('crole').value.trim();
+  c.phone=document.getElementById('cphone').value.trim().replace(/\D/g,'');c.ini=gi(c.name);
+  save();closeM();renderAll();toast('تم التحديث');}
+
+function parseWA(){const txt=document.getElementById('wainput').value.trim();if(!txt){alert('يرجى لصق الرسالة أولاً');return;}
+  let date=tstr(),time='',title=txt.length>80?txt.substring(0,80)+'...':txt;
+  const dm=txt.match(/(\d{1,2})\s*(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)/i);
+  if(dm){const m=MMP[dm[2]];if(m)date=`${new Date().getFullYear()}-${m}-${String(dm[1]).padStart(2,'0')}`;}
+  const tm=txt.match(/(\d{1,2})(?::(\d{2}))?\s*(صباحاً|مساءً|ظهراً|صباح|مساء|ظهر|ص|م)/i);
+  if(tm){let h=parseInt(tm[1]);const mn=tm[2]||'00';const pm=tm[3]&&/[مظ]/.test(tm[3]);if(pm&&h<12)h+=12;if(!pm&&h===12)h=0;time=`${String(h).padStart(2,'0')}:${mn}`;}
+  tasks.push({id:nid++,title,type:'meeting',date,time,status:'pending',src:'wa',prio:'high'});
+  save();const r=document.getElementById('wares');r.style.display='block';
+  r.innerHTML=`<i class="ti ti-check" style="color:var(--ok)"></i> تم الاستخراج — ${title}<br>التاريخ: ${fd(date)}${time?' الساعة '+time:''}`;
+  document.getElementById('wainput').value='';renderAll();toast('تم استيراد الموعد');}
+
+function updateSoundBtn(){
+  document.getElementById('sndicon').className=soundOn?'ti ti-volume':'ti ti-volume-off';
+  document.getElementById('sndlbl').textContent=soundOn?'صوت':'صامت';
+}
+function toggleSound(){soundOn=!soundOn;ss('mz4_snd',soundOn);updateSoundBtn();toast(soundOn?'الصوت مفعّل':'تم تصميت التنبيهات');}
+function toggleSoundFromBell(){
+  soundOn=!soundOn;ss('mz4_snd',soundOn);updateSoundBtn();
+  const ic=document.getElementById('nbellicon'),mu=document.getElementById('nbellmuted');
+  if(soundOn){ic.className='ti ti-bell-ringing nbell';ic.style.color='';mu.style.display='none';stopAlarm();startAlarm();}
+  else{ic.className='ti ti-bell-off nbell';ic.style.color='var(--mu)';mu.style.display='block';stopAlarm();}
+}
+function unlockAudio(){
+  if(audioUnlocked)return;
+  try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const b=audioCtx.createBuffer(1,1,22050),s=audioCtx.createBufferSource();
+    s.buffer=b;s.connect(audioCtx.destination);s.start(0);audioUnlocked=true;}catch(e){}
+}
+function playAlarm(){
+  if(!soundOn)return;
+  try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const play=()=>{try{[880,660,880,660,880].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=f;o.type='sine';const t=audioCtx.currentTime+i*.28;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.06);g.gain.linearRampToValueAtTime(0,t+.24);o.start(t);o.stop(t+.28);});}catch(e){}};
+    if(audioCtx.state==='suspended')audioCtx.resume().then(play);else play();}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([500,200,500,200,500]);}catch(e){}
+}
+function startAlarm(){stopAlarm();playAlarm();alarmInt=setInterval(()=>{if(document.getElementById('nover').style.display==='flex')playAlarm();else stopAlarm();},3500);}
+function stopAlarm(){if(alarmInt){clearInterval(alarmInt);alarmInt=null;}}
+
+function fireNotif(id){
+  const t=tasks.find(t=>t.id===id);if(!t||t.status==='done')return;
+  curN=id;
+  document.getElementById('ntitle').textContent='تذكير: '+t.title;
+  document.getElementById('nbody').textContent=`${fd(t.date)}${t.time?' — الساعة '+t.time:''}\n\nهذا التذكير يبقى نشطاً حتى تغلقه يدوياً.`;
+  const ic=document.getElementById('nbellicon'),mu=document.getElementById('nbellmuted');
+  ic.className='ti ti-bell-ringing nbell';ic.style.color='';mu.style.display='none';
+  document.getElementById('nover').style.display='flex';
+  startAlarm();
+}
+function closeN(act){
+  stopAlarm();
+  if(act==='done'&&curN)tgl(curN);
+  document.getElementById('nover').style.display='none';curN=null;
+}
+function showDelay(){
+  stopAlarm();document.getElementById('nover').style.display='none';
+  const tm=new Date();tm.setDate(tm.getDate()+1);
+  document.getElementById('ddate').value=tm.toISOString().split('T')[0];
+  document.getElementById('dtime').value='09:00';
+  document.getElementById('delay-over').style.display='flex';
+}
+function cancelDelay(){document.getElementById('delay-over').style.display='none';document.getElementById('nover').style.display='flex';}
+function quickDelay(mins,label){
+  if(!curN)return;const t=tasks.find(t=>t.id===curN);if(!t)return;
+  const dt=new Date(Date.now()+mins*60000);
+  const ds=dt.toISOString().split('T')[0];
+  const ts2=`${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+  t.status='delayed';t.date=ds;t.time=ts2;t.delayDate=ds;t.delayTime=ts2;
+  save();renderAll();document.getElementById('delay-over').style.display='none';
+  toast(`تم التأجيل ${label} — ${fd(ds)} ${ts2}`);}
+function confirmDelay(){
+  if(!curN)return;const t=tasks.find(t=>t.id===curN);if(!t)return;
+  const ds=document.getElementById('ddate').value,ts2=document.getElementById('dtime').value;
+  if(!ds){alert('يرجى اختيار التاريخ');return;}
+  t.status='delayed';t.date=ds;t.time=ts2;t.delayDate=ds;t.delayTime=ts2;
+  save();renderAll();document.getElementById('delay-over').style.display='none';
+  toast(`تم التأجيل إلى ${fd(ds)} ${ts2}`);}
+
+function chkAlarms(){
+  const ts=tstr(),now=new Date(),hh=String(now.getHours()).padStart(2,'0'),mm=String(now.getMinutes()).padStart(2,'0'),cur=hh+':'+mm;
+  tasks.forEach(t=>{const cd=t.delayDate||t.date,ct=t.delayTime||t.time;
+    if(t.status!=='done'&&cd===ts&&ct===cur&&!_fired[t.id]){_fired[t.id]=1;fireNotif(t.id);}});}
+
+function getFiltered(){
+  const f=document.getElementById('rfilter'),v=f?f.value:'all';
+  return v==='pending'?tasks.filter(t=>t.status==='pending'):v==='done'?tasks.filter(t=>t.status==='done'):v==='delayed'?tasks.filter(t=>t.status==='delayed'):v==='meeting'?tasks.filter(t=>t.type==='meeting'):v==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
+}
+function buildHTML(list){
+  const done=list.filter(t=>t.status==='done').length,pct=list.length?Math.round(done/list.length*100):0;
+  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  const rows=list.map(t=>{const st=t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ';const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';return`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px">${t.title}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#666">${tp}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#666">${fd(t.date)}${t.time?' '+t.time:''}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;font-weight:500;color:${stc}">${st}</td></tr>`;}).join('');
+  return`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#1a1a2e}.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #6C63FF}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}.sc{background:#F8F7FF;border-radius:10px;padding:12px;text-align:center}.sv{font-size:22px;font-weight:700;margin-bottom:2px}.sl{font-size:11px;color:#6b6880}table{width:100%;border-collapse:collapse}th{background:#6C63FF;color:#fff;padding:10px;font-size:13px;text-align:right;font-weight:500}tr:nth-child(even){background:#F8F7FF}.footer{margin-top:20px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#a09db8;text-align:center}</style></head><body>
+  <div class="hdr"><div><div style="font-size:18px;font-weight:700">🔔 مُذكِّر</div><div style="font-size:11px;color:#6b6880">المساعد الذكي للمواعيد</div></div><div style="font-size:12px;color:#6b6880">تقرير بتاريخ: ${ds}</div></div>
+  <div class="stats"><div class="sc"><div class="sv" style="color:#6C63FF">${list.length}</div><div class="sl">إجمالي المهام</div></div><div class="sc"><div class="sv" style="color:#1D9E75">${done}</div><div class="sl">مكتملة</div></div><div class="sc"><div class="sv" style="color:#378ADD">${list.filter(t=>t.type==='meeting').length}</div><div class="sl">اجتماعات</div></div><div class="sc"><div class="sv" style="color:#BA7517">${pct}%</div><div class="sl">نسبة الإنجاز</div></div></div>
+  <table><thead><tr><th>المهمة</th><th style="width:80px">النوع</th><th style="width:120px">التاريخ</th><th style="width:90px">الحالة</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">تم إنشاء هذا التقرير بواسطة تطبيق مُذكِّر</div></body></html>`;}
+
+function exportPDF(mode){
+  if(mode==='print'){const w=window.open('','_blank');w.document.write(buildHTML(getFiltered()));w.document.close();w.onload=()=>w.print();return;}
+  const list=mode==='filtered'?getFiltered():tasks;
+  const blob=new Blob([buildHTML(list)],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  const now=new Date();a.href=url;a.download=`تقرير-مذكر-${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}.html`;
+  a.click();URL.revokeObjectURL(url);toast('تم التصدير — افتحه في المتصفح واطبعه أو احفظه PDF');}
+
+function shareReportWA(){
+  if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}
+  const list=getFiltered(),done=list.filter(t=>t.status==='done').length,pct=list.length?Math.round(done/list.length*100):0;
+  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  let msg=`📊 *تقرير مُذكِّر — ${ds}*\n\n📋 إجمالي: ${list.length}\n✅ مكتملة: ${done} (${pct}%)\n🕐 قيد التنفيذ: ${list.filter(t=>t.status==='pending').length}\n⏰ مؤجلة: ${list.filter(t=>t.status==='delayed').length}\n👥 اجتماعات: ${list.filter(t=>t.type==='meeting').length}`;
+  const p=list.filter(t=>t.status==='pending').slice(0,5);
+  if(p.length)msg+='\n\n*المهام المتبقية:*\n'+p.map(t=>`• ${t.title} — ${fd(t.date)}${t.time?' '+t.time:''}`).join('\n');
+  showContactPicker(msg);}
+
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
+
+const nd=new Date();
+document.getElementById('dtlbl').textContent=`${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]} ${nd.getFullYear()}`;
+if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+setInterval(chkAlarms,30000);
+if(fbConfig)initFirebase();
+updateSoundBtn();renderAll();chkAlarms();
+document.addEventListener('click',e=>{unlockAudio();const sb=document.getElementById('sb');if(sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))sb.classList.remove('open');});
+document.addEventListener('touchstart',()=>unlockAudio(),{once:true});
+</script>
+</body>
+</html>

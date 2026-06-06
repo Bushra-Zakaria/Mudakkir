@@ -90,16 +90,18 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh
 .cd.hev::after{content:'';width:4px;height:4px;background:var(--er);border-radius:50%;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)}
 .cd.today.hev::after{background:rgba(255,255,255,.7)}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px}
-.sk{border-radius:var(--r);padding:13px;min-height:115px;cursor:pointer;transition:transform .15s;position:relative;border:1px solid transparent}
-.sk:hover{transform:translateY(-3px)}
+.sk{border-radius:var(--r);padding:14px;min-height:130px;position:relative;border:1px solid transparent;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
+.sk:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
 .sy{background:#FAEEDA;border-color:#FAC775}.sp{background:#EEEDFE;border-color:#CECBF6}
 .sg{background:#EAF3DE;border-color:#C0DD97}.sb2{background:#E6F1FB;border-color:#B5D4F4}
 .sc{background:#FAECE7;border-color:#F5C4B3}
-.sk-t{font-size:12px;font-weight:700;color:#2C2C2A;margin-bottom:5px}
-.sk-b{font-size:11px;color:#5F5E5A;line-height:1.5}
-.sk-d{font-size:10px;color:#888780;margin-top:7px}
-.sk-del{position:absolute;top:7px;left:7px;background:rgba(255,255,255,.75);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;color:#888;display:none;align-items:center;justify-content:center}
-.sk:hover .sk-del{display:flex}
+.sk-t{font-size:13px;font-weight:700;color:#2C2C2A;margin-bottom:6px}
+.sk-b{font-size:12px;color:#5F5E5A;line-height:1.6;flex:1}
+.sk-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08)}
+.sk-d{font-size:10px;color:#888780}
+.sk-acts{display:flex;gap:4px}
+.sk-btn{background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.1);border-radius:var(--rs);width:24px;height:24px;cursor:pointer;font-size:12px;color:#555;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sk-btn:hover{background:rgba(255,255,255,.9);transform:scale(1.1)}
 .wa-box{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:15px;margin-bottom:13px}
 .wa-hdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:11px;color:var(--wa)}
 textarea{width:100%;min-height:85px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);font-size:12px;resize:vertical;background:var(--card);color:var(--tx);font-family:var(--fn);line-height:1.6}
@@ -249,7 +251,10 @@ input:focus,select:focus{border-color:var(--pr)}
     </div>
 
     <div id="panel-sticky" class="panel">
-      <div style="margin-bottom:12px"><button class="btn-add" onclick="openAddSticky()"><i class="ti ti-plus"></i>إضافة ملاحظة</button></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="sec-t">ملاحظاتي</div>
+        <button class="btn-add" onclick="openAddSticky()"><i class="ti ti-plus"></i>إضافة ملاحظة</button>
+      </div>
       <div class="sgrid" id="sgrid"></div>
     </div>
 
@@ -516,7 +521,21 @@ function renderCal(){
 function fbd(ds){document.getElementById('cetitle').textContent=`مواعيد ${fd(ds)}`;const ev=tasks.filter(t=>t.date===ds||t.delayDate===ds);document.getElementById('calevents').innerHTML=ev.length?ev.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>لا مواعيد في هذا اليوم</div>';}
 function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
 
-function renderNotes(){document.getElementById('sgrid').innerHTML=notes.map(n=>`<div class="sk ${n.color}"><button class="sk-del" onclick="delNote(${n.id})"><i class="ti ti-x"></i></button><div class="sk-t">${n.title}</div><div class="sk-b">${n.text}</div><div class="sk-d">${n.date}</div></div>`).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ti ti-note"></i>لا توجد ملاحظات</div>';}
+function renderNotes(){
+  document.getElementById('sgrid').innerHTML=notes.map(n=>`
+    <div class="sk ${n.color}">
+      <div class="sk-t">${n.title}</div>
+      <div class="sk-b">${n.text}</div>
+      <div class="sk-footer">
+        <div class="sk-d"><i class="ti ti-calendar" style="font-size:10px"></i> ${n.date}</div>
+        <div class="sk-acts">
+          <button class="sk-btn" onclick="shareNote(${n.id})" title="إرسال عبر واتساب"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i></button>
+          <button class="sk-btn" onclick="editNote(${n.id})" title="تعديل"><i class="ti ti-edit" style="color:#555"></i></button>
+          <button class="sk-btn" onclick="delNote(${n.id})" title="حذف"><i class="ti ti-trash" style="color:var(--er)"></i></button>
+        </div>
+      </div>
+    </div>`).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ti ti-note"></i>لا توجد ملاحظات — اضغط إضافة ملاحظة</div>';
+}
 function renderContacts(){document.getElementById('cgrid').innerHTML=contacts.map(c=>`<div class="cc"><div class="cc-hdr"><div class="av" style="background:${c.color}20;color:${c.color};font-size:11px">${c.ini||gi(c.name)}</div><div><div style="font-size:13px;font-weight:500">${c.name}</div><div style="font-size:10px;color:var(--mu)">${c.role||''}</div></div></div><div class="cf"><i class="ti ti-phone"></i><span>+${c.phone}</span></div><div class="cacts"><button class="bsm" onclick="waSend(${c.id})"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i>إرسال</button><button class="bsm" onclick="editC(${c.id})"><i class="ti ti-edit"></i>تعديل</button><button class="bsm" onclick="delC(${c.id})" style="color:var(--er)"><i class="ti ti-trash"></i>حذف</button></div></div>`).join('')||'<div class="empty"><i class="ti ti-users"></i>لا توجد جهات اتصال</div>';}
 function renderCMini(){document.getElementById('cmini').innerHTML=contacts.slice(0,3).map(c=>`<div class="c-chip" onclick="waSend(${c.id})"><div class="av" style="background:${c.color}20;color:${c.color}">${c.ini||gi(c.name)}</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div style="font-size:10px;color:var(--mu)">+${c.phone}</div></div><i class="ti ti-brand-whatsapp" style="color:var(--wa);font-size:13px"></i></div>`).join('');}
 
@@ -615,13 +634,51 @@ function updTask(id){const t=tasks.find(t=>t.id===id);if(!t)return;
   t.status=document.getElementById('mst').value;t.date=document.getElementById('md').value;t.time=document.getElementById('mti').value;
   save();closeM();renderAll();toast('تم التحديث');}
 
-function openAddSticky(){M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
-    <div class="modal-t"><i class="ti ti-note" style="color:var(--wn)"></i>إضافة ملاحظة</div>
-    <div class="fg"><label class="fl">العنوان</label><input type="text" id="nt" placeholder="عنوان الملاحظة..."></div>
-    <div class="fg"><label class="fl">النص</label><textarea id="nb" placeholder="اكتب ملاحظتك هنا..." style="min-height:70px"></textarea></div>
-    <div class="fg"><label class="fl">اللون</label><select id="nc"><option value="sy">أصفر</option><option value="sp">بنفسجي</option><option value="sg">أخضر</option><option value="sb2">أزرق</option><option value="sc">مرجاني</option></select></div>
-    <button class="bp" onclick="saveNote()">حفظ</button><button class="bs2" onclick="closeM()">إلغاء</button>
-  </div></div>`);}
+function openAddSticky(editId=null){
+  const n=editId?notes.find(n=>n.id===editId):null;
+  M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
+    <div class="modal-t"><i class="ti ti-note" style="color:var(--wn)"></i>${n?'تعديل الملاحظة':'إضافة ملاحظة'}</div>
+    <div class="fg"><label class="fl">العنوان</label><input type="text" id="nt" value="${n?n.title.replace(/"/g,'&quot;'):''}" placeholder="عنوان الملاحظة..."></div>
+    <div class="fg"><label class="fl">النص</label><textarea id="nb" placeholder="اكتب ملاحظتك هنا..." style="min-height:90px">${n?n.text:''}</textarea></div>
+    <div class="fg"><label class="fl">اللون</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        ${[['sy','#FAEEDA','#FAC775'],['sp','#EEEDFE','#CECBF6'],['sg','#EAF3DE','#C0DD97'],['sb2','#E6F1FB','#B5D4F4'],['sc','#FAECE7','#F5C4B3']].map(([val,bg,bd])=>`
+          <div onclick="selectColor('${val}')" id="colopt-${val}" style="width:32px;height:32px;border-radius:8px;background:${bg};border:2px solid ${n&&n.color===val?'#333':bd};cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">
+            ${n&&n.color===val?'<i class="ti ti-check" style="font-size:14px;color:#333"></i>':''}
+          </div>`).join('')}
+      </div>
+      <input type="hidden" id="nc" value="${n?n.color:'sy'}">
+    </div>
+    <button class="bp" onclick="${n?'saveEditNote('+editId+')':'saveNote()'}">${n?'حفظ التعديلات':'إضافة'}</button>
+    <button class="bs2" onclick="closeM()">إلغاء</button>
+  </div></div>`);
+}
+
+function selectColor(val){
+  document.getElementById('nc').value=val;
+  document.querySelectorAll('[id^="colopt-"]').forEach(el=>{
+    const v=el.id.replace('colopt-','');
+    const colors={sy:'#FAC775',sp:'#CECBF6',sg:'#C0DD97',sb2:'#B5D4F4',sc:'#F5C4B3'};
+    el.style.border=`2px solid ${v===val?'#333':colors[v]}`;
+    el.innerHTML=v===val?'<i class="ti ti-check" style="font-size:14px;color:#333"></i>':'';
+  });
+}
+
+function editNote(id){openAddSticky(id);}
+
+function saveEditNote(id){
+  const n=notes.find(n=>n.id===id);if(!n)return;
+  const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
+  if(!tt||!nb){alert('يرجى تعبئة جميع الحقول');return;}
+  n.title=tt;n.text=nb;n.color=document.getElementById('nc').value;
+  save();closeM();renderNotes();toast('تم تحديث الملاحظة');
+}
+
+function shareNote(id){
+  const n=notes.find(n=>n.id===id);if(!n)return;
+  if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}
+  showContactPicker(`📝 ${n.title}\n\n${n.text}\n\n— مُذكِّر`);
+}
 
 function saveNote(){const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
   if(!tt||!nb){alert('يرجى تعبئة جميع الحقول');return;}

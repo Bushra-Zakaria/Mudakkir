@@ -456,10 +456,14 @@ function tc(t){
   const wb=t.src==='wa'?'<span class="badge bw">واتساب</span>':'';
   const ub=(t.prio==='high'&&!done)?'<span class="badge bu">عاجل</span>':'';
   const di=del&&t.delayDate?`<span class="ttime"><i class="ti ti-calendar-event" style="font-size:11px;color:var(--wn)"></i>مؤجل: ${fd(t.delayDate)} ${t.delayTime||''}</span>`:'';
+  const bodyHtml=t.body?`<div style="font-size:12px;color:var(--mu);margin-top:5px;padding:7px 10px;background:var(--bg);border-radius:var(--rs);border-right:3px solid var(--pr);line-height:1.6">${t.body}</div>`:'';
   return`<div class="tc${done?' dc':''}" id="tc${t.id}">
     <div class="chk${done?' done':''}" onclick="tgl(${t.id})">${done?'<i class="ti ti-check"></i>':''}</div>
-    <div class="tb"><div class="tt${done?' stk':''}">${t.title}</div>
-    <div class="tm">${tb}${sb}${wb}${ub}<span class="ttime"><i class="ti ti-calendar" style="font-size:11px"></i>${fd(t.date)}${t.time?' — '+t.time:''}</span>${di}</div></div>
+    <div class="tb">
+      <div class="tt${done?' stk':''}">${t.title}</div>
+      <div class="tm">${tb}${sb}${wb}${ub}<span class="ttime"><i class="ti ti-calendar" style="font-size:11px"></i>${fd(t.date)}${t.time?' — '+t.time:''}</span>${di}</div>
+      ${bodyHtml}
+    </div>
     <div class="tacts">
       ${!done?`<button class="bi" onclick="tgl(${t.id})"><i class="ti ti-check"></i></button>`:''}
       <button class="bi wab" onclick="twA(${t.id})"><i class="ti ti-brand-whatsapp"></i></button>
@@ -557,13 +561,21 @@ function delC(id){if(!confirm('حذف جهة الاتصال؟'))return;contacts=
 function twA(id){
   const t=tasks.find(t=>t.id===id);if(!t)return;
   if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}
-  showContactPicker('تذكير: '+t.title+'\nالتاريخ: '+fd(t.date)+(t.time?' الساعة '+t.time:''));}
+  const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';
+  let msg=`📌 تذكير: ${t.title}\n📋 النوع: ${tp}\n📅 التاريخ: ${fd(t.date)}${t.time?' ⏰ الساعة '+t.time:''}`;
+  if(t.body)msg+=`\n\n📝 التفاصيل:\n${t.body}`;
+  msg+='\n\n— مُذكِّر';
+  showContactPicker(msg);}
 
 function sendViaWA(){
   if(!curN)return;const t=tasks.find(t=>t.id===curN);if(!t)return;
   if(!contacts.length){toast('أضف جهة اتصال أولاً');closeN(null);return;}
   stopAlarm();document.getElementById('nover').style.display='none';
-  showContactPicker('تذكير: '+t.title+'\nالتاريخ: '+fd(t.date)+(t.time?' الساعة '+t.time:''),true);}
+  const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';
+  let msg=`🔔 تذكير: ${t.title}\n📋 النوع: ${tp}\n📅 التاريخ: ${fd(t.date)}${t.time?' ⏰ الساعة '+t.time:''}`;
+  if(t.body)msg+=`\n\n📝 التفاصيل:\n${t.body}`;
+  msg+='\n\n— مُذكِّر';
+  showContactPicker(msg,true);}
 
 function waSend(cid){
   const c=contacts.find(c=>c.id===cid);if(!c)return;
@@ -606,11 +618,16 @@ function closeM(){document.getElementById('mroot').innerHTML='';}
 
 function openAdd(){M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
     <div class="modal-t"><i class="ti ti-plus" style="color:var(--pr)"></i>إضافة مهمة أو موعد</div>
-    <div class="fg"><label class="fl">العنوان</label><input type="text" id="mt" placeholder="اكتب هنا..."></div>
-    <div class="fr"><div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task">مهمة</option><option value="meeting">اجتماع</option><option value="note">ملاحظة</option></select></div>
-    <div class="fg" style="flex:1"><label class="fl">الأولوية</label><select id="mpr"><option value="high">عاجل</option><option value="normal">عادي</option></select></div></div>
-    <div class="fr"><div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${tstr()}"></div>
-    <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="09:00"></div></div>
+    <div class="fg"><label class="fl">العنوان</label><input type="text" id="mt" placeholder="اكتب العنوان هنا..."></div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task">مهمة</option><option value="meeting">اجتماع</option><option value="note">ملاحظة</option></select></div>
+      <div class="fg" style="flex:1"><label class="fl">الأولوية</label><select id="mpr"><option value="high">عاجل</option><option value="normal">عادي</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">المحتوى / التفاصيل</label><textarea id="mbody" placeholder="اكتب تفاصيل المهمة أو الموعد هنا... (اختياري)&#10;سيتم إرسال هذا المحتوى عند الإرسال عبر واتساب" style="min-height:80px"></textarea></div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${tstr()}"></div>
+      <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="09:00"></div>
+    </div>
     <button class="bp" onclick="saveTask()">حفظ</button><button class="bs2" onclick="closeM()">إلغاء</button>
   </div></div>`);}
 
@@ -618,20 +635,27 @@ function editT(id){const t=tasks.find(t=>t.id===id);if(!t)return;
   M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
     <div class="modal-t"><i class="ti ti-edit" style="color:var(--pr)"></i>تعديل المهمة</div>
     <div class="fg"><label class="fl">العنوان</label><input type="text" id="mt" value="${t.title.replace(/"/g,'&quot;')}"></div>
-    <div class="fr"><div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task"${t.type==='task'?' selected':''}>مهمة</option><option value="meeting"${t.type==='meeting'?' selected':''}>اجتماع</option><option value="note"${t.type==='note'?' selected':''}>ملاحظة</option></select></div>
-    <div class="fg" style="flex:1"><label class="fl">الحالة</label><select id="mst"><option value="pending"${t.status==='pending'?' selected':''}>قيد التنفيذ</option><option value="done"${t.status==='done'?' selected':''}>مكتمل</option><option value="delayed"${t.status==='delayed'?' selected':''}>مؤجل</option></select></div></div>
-    <div class="fr"><div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${t.date}"></div>
-    <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="${t.time||'09:00'}"></div></div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">النوع</label><select id="mtp"><option value="task"${t.type==='task'?' selected':''}>مهمة</option><option value="meeting"${t.type==='meeting'?' selected':''}>اجتماع</option><option value="note"${t.type==='note'?' selected':''}>ملاحظة</option></select></div>
+      <div class="fg" style="flex:1"><label class="fl">الحالة</label><select id="mst"><option value="pending"${t.status==='pending'?' selected':''}>قيد التنفيذ</option><option value="done"${t.status==='done'?' selected':''}>مكتمل</option><option value="delayed"${t.status==='delayed'?' selected':''}>مؤجل</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">المحتوى / التفاصيل</label><textarea id="mbody" style="min-height:80px" placeholder="تفاصيل إضافية...">${t.body||''}</textarea></div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">التاريخ</label><input type="date" id="md" value="${t.date}"></div>
+      <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="mti" value="${t.time||'09:00'}"></div>
+    </div>
     <button class="bp" onclick="updTask(${id})">حفظ التعديلات</button><button class="bs2" onclick="closeM()">إلغاء</button>
   </div></div>`);}
 
-function saveTask(){const tt=document.getElementById('mt').value.trim();if(!tt){alert('يرجى كتابة العنوان');return;}
-  tasks.push({id:nid++,title:tt,type:document.getElementById('mtp').value,date:document.getElementById('md').value,time:document.getElementById('mti').value,status:'pending',src:'manual',prio:document.getElementById('mpr').value});
+function saveTask(){
+  const tt=document.getElementById('mt').value.trim();if(!tt){alert('يرجى كتابة العنوان');return;}
+  tasks.push({id:nid++,title:tt,type:document.getElementById('mtp').value,date:document.getElementById('md').value,time:document.getElementById('mti').value,status:'pending',src:'manual',prio:document.getElementById('mpr').value,body:document.getElementById('mbody').value.trim()});
   save();closeM();renderAll();toast('تم الحفظ');}
 
 function updTask(id){const t=tasks.find(t=>t.id===id);if(!t)return;
   t.title=document.getElementById('mt').value.trim();t.type=document.getElementById('mtp').value;
-  t.status=document.getElementById('mst').value;t.date=document.getElementById('md').value;t.time=document.getElementById('mti').value;
+  t.status=document.getElementById('mst').value;t.date=document.getElementById('md').value;
+  t.time=document.getElementById('mti').value;t.body=document.getElementById('mbody').value.trim();
   save();closeM();renderAll();toast('تم التحديث');}
 
 function openAddSticky(editId=null){
@@ -792,23 +816,59 @@ function getFiltered(){
   const f=document.getElementById('rfilter'),v=f?f.value:'all';
   return v==='pending'?tasks.filter(t=>t.status==='pending'):v==='done'?tasks.filter(t=>t.status==='done'):v==='delayed'?tasks.filter(t=>t.status==='delayed'):v==='meeting'?tasks.filter(t=>t.type==='meeting'):v==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
 }
-function buildHTML(list){
+function buildHTML(list,label=''){
   const done=list.filter(t=>t.status==='done').length,pct=list.length?Math.round(done/list.length*100):0;
   const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-  const rows=list.map(t=>{const st=t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ';const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';return`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px">${t.title}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#666">${tp}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;color:#666">${fd(t.date)}${t.time?' '+t.time:''}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;font-weight:500;color:${stc}">${st}</td></tr>`;}).join('');
-  return`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#1a1a2e}.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #6C63FF}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}.sc{background:#F8F7FF;border-radius:10px;padding:12px;text-align:center}.sv{font-size:22px;font-weight:700;margin-bottom:2px}.sl{font-size:11px;color:#6b6880}table{width:100%;border-collapse:collapse}th{background:#6C63FF;color:#fff;padding:10px;font-size:13px;text-align:right;font-weight:500}tr:nth-child(even){background:#F8F7FF}.footer{margin-top:20px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#a09db8;text-align:center}</style></head><body>
-  <div class="hdr"><div><div style="font-size:18px;font-weight:700">🔔 مُذكِّر</div><div style="font-size:11px;color:#6b6880">المساعد الذكي للمواعيد</div></div><div style="font-size:12px;color:#6b6880">تقرير بتاريخ: ${ds}</div></div>
-  <div class="stats"><div class="sc"><div class="sv" style="color:#6C63FF">${list.length}</div><div class="sl">إجمالي المهام</div></div><div class="sc"><div class="sv" style="color:#1D9E75">${done}</div><div class="sl">مكتملة</div></div><div class="sc"><div class="sv" style="color:#378ADD">${list.filter(t=>t.type==='meeting').length}</div><div class="sl">اجتماعات</div></div><div class="sc"><div class="sv" style="color:#BA7517">${pct}%</div><div class="sl">نسبة الإنجاز</div></div></div>
-  <table><thead><tr><th>المهمة</th><th style="width:80px">النوع</th><th style="width:120px">التاريخ</th><th style="width:90px">الحالة</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="footer">تم إنشاء هذا التقرير بواسطة تطبيق مُذكِّر</div></body></html>`;}
+  const rows=list.map(t=>{
+    const st=t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ';
+    const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';
+    const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';
+    const bodyRow=t.body?`<tr><td colspan="4" style="padding:4px 10px 10px;font-size:11px;color:#555;background:#f9f8ff;border-bottom:1px solid #eee;border-right:3px solid #6C63FF">${t.body}</td></tr>`:'';
+    return`<tr><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:13px;font-weight:500">${t.title}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;color:#666">${tp}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;color:#666">${fd(t.date)}${t.time?' '+t.time:''}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;font-weight:500;color:${stc}">${st}</td></tr>${bodyRow}`;
+  }).join('');
+  return`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><style>
+    @media print{body{margin:0}@page{margin:15mm}}
+    body{font-family:'Tajawal',Arial,sans-serif;margin:0;padding:24px;color:#1a1a2e}
+    .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #6C63FF}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+    .sc{background:#F8F7FF;border-radius:10px;padding:12px;text-align:center}
+    .sv{font-size:22px;font-weight:700;margin-bottom:2px}.sl{font-size:11px;color:#6b6880}
+    table{width:100%;border-collapse:collapse}
+    th{background:#6C63FF;color:#fff;padding:10px;font-size:13px;text-align:right;font-weight:500}
+    tr:nth-child(4n+1) td{background:#fff}tr:nth-child(4n+3) td{background:#F8F7FF}
+    .footer{margin-top:20px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#a09db8;text-align:center}
+    .lbl{font-size:12px;color:#6C63FF;font-weight:500;margin-bottom:10px}
+  </style></head><body>
+  <div class="hdr">
+    <div><div style="font-size:18px;font-weight:700">🔔 مُذكِّر</div><div style="font-size:11px;color:#6b6880">المساعد الذكي للمواعيد</div></div>
+    <div style="text-align:left"><div style="font-size:12px;color:#6b6880">تقرير بتاريخ: ${ds}</div>${label?`<div class="lbl">${label}</div>`:''}</div>
+  </div>
+  <div class="stats">
+    <div class="sc"><div class="sv" style="color:#6C63FF">${list.length}</div><div class="sl">إجمالي المهام</div></div>
+    <div class="sc"><div class="sv" style="color:#1D9E75">${done}</div><div class="sl">مكتملة</div></div>
+    <div class="sc"><div class="sv" style="color:#378ADD">${list.filter(t=>t.type==='meeting').length}</div><div class="sl">اجتماعات</div></div>
+    <div class="sc"><div class="sv" style="color:#BA7517">${pct}%</div><div class="sl">نسبة الإنجاز</div></div>
+  </div>
+  <table><thead><tr><th>المهمة / الموعد</th><th style="width:80px">النوع</th><th style="width:120px">التاريخ</th><th style="width:90px">الحالة</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">تم إنشاء هذا التقرير بواسطة تطبيق مُذكِّر</div>
+  </body></html>`;}
 
 function exportPDF(mode){
-  if(mode==='print'){const w=window.open('','_blank');w.document.write(buildHTML(getFiltered()));w.document.close();w.onload=()=>w.print();return;}
+  if(mode==='print'){
+    const w=window.open('','_blank');
+    w.document.write(buildHTML(getFiltered(),'تصدير المحدد'));
+    w.document.close();
+    setTimeout(()=>w.print(),600);
+    return;
+  }
   const list=mode==='filtered'?getFiltered():tasks;
-  const blob=new Blob([buildHTML(list)],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  const now=new Date();a.href=url;a.download=`تقرير-مذكر-${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}.html`;
-  a.click();URL.revokeObjectURL(url);toast('تم التصدير — افتحه في المتصفح واطبعه أو احفظه PDF');}
+  const label=mode==='filtered'?`فئة: ${document.getElementById('rfilter').options[document.getElementById('rfilter').selectedIndex].text}`:'جميع المهام';
+  const w=window.open('','_blank');
+  w.document.write(buildHTML(list,label));
+  w.document.close();
+  setTimeout(()=>w.print(),600);
+  toast('اختر "حفظ كـ PDF" من نافذة الطباعة');
+}
 
 function shareReportWA(){
   if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}

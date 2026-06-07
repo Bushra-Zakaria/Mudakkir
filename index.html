@@ -577,19 +577,27 @@ function renderNotes(){
     const hasPrio=n.prio&&n.prio!=='normal';
     const hasDate=n.date2;
     const isToday=n.date2===tstr();
-    return`<div class="sk ${n.color}" style="${isToday?'border-color:var(--er);border-width:2px':''}">
+    const isDone=n.status==='done';
+    return`<div class="sk ${n.color}" style="${isDone?'opacity:0.6;':''}${isToday&&!isDone?'border-color:var(--er);border-width:2px':''}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:6px">
-        <div class="sk-t">${n.title}</div>
-        ${hasPrio?`<span style="font-size:9px;padding:2px 6px;border-radius:var(--rf);background:rgba(255,255,255,.75);color:${prioColor[n.prio]};font-weight:600;white-space:nowrap;flex-shrink:0">${prioLabel[n.prio]}</span>`:''}
+        <div style="display:flex;align-items:center;gap:6px;flex:1">
+          <div class="chk${isDone?' done':''}" onclick="tglNote(${n.id})" style="width:18px;height:18px;border-radius:50%;border:2px solid ${isDone?'var(--ok)':'rgba(0,0,0,.2)'};background:${isDone?'var(--ok)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s">
+            ${isDone?'<i class="ti ti-check" style="font-size:10px;color:#fff"></i>':''}
+          </div>
+          <div class="sk-t" style="${isDone?'text-decoration:line-through;color:#999':''}flex:1">${n.title}</div>
+        </div>
+        ${hasPrio&&!isDone?`<span style="font-size:9px;padding:2px 6px;border-radius:var(--rf);background:rgba(255,255,255,.75);color:${prioColor[n.prio]};font-weight:600;white-space:nowrap;flex-shrink:0">${prioLabel[n.prio]}</span>`:''}
+        ${isDone?`<span style="font-size:9px;padding:2px 6px;border-radius:var(--rf);background:rgba(255,255,255,.75);color:var(--ok);font-weight:600;white-space:nowrap;flex-shrink:0"><i class="ti ti-check"></i> منجز</span>`:''}
       </div>
-      <div class="sk-b">${n.text}</div>
-      ${hasDate?`<div style="font-size:10px;color:${isToday?'var(--er)':'#666'};margin-top:7px;display:flex;align-items:center;gap:4px;font-weight:${isToday?'700':'400'}">
+      <div class="sk-b" style="${isDone?'text-decoration:line-through;color:#999':''}color:#5F5E5A">${n.text}</div>
+      ${hasDate&&!isDone?`<div style="font-size:10px;color:${isToday?'var(--er)':'#666'};margin-top:7px;display:flex;align-items:center;gap:4px;font-weight:${isToday?'700':'400'}">
         <i class="ti ti-bell" style="font-size:11px"></i>${isToday?'اليوم!':fd(n.date2)}${n.time?' - '+n.time:''}
       </div>`:''}
       <div class="sk-footer">
         <div class="sk-d"><i class="ti ti-calendar" style="font-size:10px"></i> ${n.date}</div>
         <div class="sk-acts">
-          <button class="sk-btn" onclick="shareNote(${n.id})" title="إرسال عبر واتساب"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i></button>
+          ${!isDone?`<button class="sk-btn" onclick="tglNote(${n.id})" title="تم الانجاز" style="background:rgba(255,255,255,.7)"><i class="ti ti-circle-check" style="color:var(--ok)"></i></button>`:''}
+          <button class="sk-btn" onclick="shareNote(${n.id})" title="ارسال عبر واتساب"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i></button>
           <button class="sk-btn" onclick="editNote(${n.id})" title="تعديل"><i class="ti ti-edit" style="color:#555"></i></button>
           <button class="sk-btn" onclick="delNote(${n.id})" title="حذف"><i class="ti ti-trash" style="color:var(--er)"></i></button>
         </div>
@@ -610,6 +618,8 @@ function sp(name,el,mob=0){
   renderAll();}
 function toggleSB(){document.getElementById('sb').classList.toggle('open');}
 function tgl(id){const t=tasks.find(t=>t.id===id);if(!t)return;t.status=t.status==='done'?'pending':'done';save();renderAll();}
+function tglNote(id){const n=notes.find(n=>n.id===id);if(!n)return;n.status=n.status==='done'?'pending':'done';save();renderNotes();toast(n.status==='done'?'تم انجاز الملاحظة':'تم اعادة الملاحظة للنشطة');}
+function tglMeeting(id){const m=meetings.find(m=>m.id===id);if(!m)return;m.status=m.status==='done'?'upcoming':'done';save();renderMeetings();toast(m.status==='done'?'تم انجاز الاجتماع':'تم اعادة الاجتماع للنشطة');}
 function delT(id){if(!confirm('هل تريد حذف هذه المهمة؟'))return;tasks=tasks.filter(t=>t.id!==id);save();renderAll();}
 function delNote(id){notes=notes.filter(n=>n.id!==id);save();renderAll();}
 function delC(id){if(!confirm('حذف جهة الاتصال؟'))return;contacts=contacts.filter(c=>c.id!==id);save();renderAll();}
@@ -986,31 +996,36 @@ function mcCard(m){
   const icons={internal:'🏢',external:'🤝',board:'👔',client:'💼',review:'📋',other:'📌'};
   const ic=icons[m.mtype]||'📅';
   const attendees=m.attendees?m.attendees.split('،').map(a=>a.trim()).filter(Boolean):[];
-  return`<div class="mc" id="mc${m.id}">
+  const isDone=m.status==='done';
+  return`<div class="mc" id="mc${m.id}" style="${isDone?'opacity:0.65':''}">
     <div class="mc-header">
-      <div class="mc-icon" style="background:var(--in-l)">${ic}</div>
+      <div class="mc-icon" style="background:${isDone?'var(--ok-l)':'var(--in-l)'}">${isDone?'✅':ic}</div>
       <div style="flex:1;min-width:0">
-        <div class="mc-title">${m.title}</div>
+        <div class="mc-title" style="${isDone?'text-decoration:line-through;color:var(--mu)':''}">${m.title}</div>
         <div class="mc-meta">
           <span class="mc-badge ${sc}">${sl}</span>
           <span class="mc-badge" style="background:var(--bg);color:var(--mu)">${tl}</span>
           ${m.date?`<span style="font-size:11px;color:var(--mu)"><i class="ti ti-calendar" style="font-size:11px"></i> ${fd(m.date)}${m.time?' - '+m.time:''}</span>`:''}
+          ${m.duration?`<span style="font-size:11px;color:var(--mu)"><i class="ti ti-clock" style="font-size:11px"></i> ${m.duration} د</span>`:''}
         </div>
+      </div>
+      <div onclick="tglMeeting(${m.id})" style="width:22px;height:22px;border-radius:50%;border:2px solid ${isDone?'var(--ok)':'var(--bd)'};background:${isDone?'var(--ok)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s">
+        ${isDone?'<i class="ti ti-check" style="font-size:12px;color:#fff"></i>':''}
       </div>
     </div>
     <div class="mc-body">
       ${m.location?`<div class="mc-row"><i class="ti ti-map-pin"></i><div><span style="color:var(--mu);font-size:11px">المكان: </span><span class="mc-row-val">${m.location}</span></div></div>`:''}
       ${m.organizer?`<div class="mc-row"><i class="ti ti-user-check"></i><div><span style="color:var(--mu);font-size:11px">المنظم: </span><span class="mc-row-val">${m.organizer}</span></div></div>`:''}
       ${attendees.length?`<div class="mc-row"><i class="ti ti-users"></i><div><span style="color:var(--mu);font-size:11px">الحضور: </span><span class="mc-row-val">${attendees.map(a=>`<span style="display:inline-block;background:var(--pr-l);color:var(--pr-d);border-radius:var(--rf);padding:1px 7px;font-size:10px;margin:1px">${a}</span>`).join('')}</span></div></div>`:''}
-      ${m.agenda?`<div class="mc-row"><i class="ti ti-list"></i><div><span style="color:var(--mu);font-size:11px">جدول الأعمال: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--bg);border-radius:var(--rs);border-right:3px solid var(--in)">${m.agenda.replace(/\n/g,'<br>')}</div></div></div>`:''}
+      ${m.agenda?`<div class="mc-row"><i class="ti ti-list"></i><div><span style="color:var(--mu);font-size:11px">جدول الاعمال: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--bg);border-radius:var(--rs);border-right:3px solid var(--in)">${m.agenda.replace(/\n/g,'<br>')}</div></div></div>`:''}
       ${m.notes?`<div class="mc-row"><i class="ti ti-notes"></i><div><span style="color:var(--mu);font-size:11px">ملاحظات / محضر: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--bg);border-radius:var(--rs)">${m.notes.replace(/\n/g,'<br>')}</div></div></div>`:''}
       ${m.decisions?`<div class="mc-row"><i class="ti ti-circle-check" style="color:var(--ok)"></i><div><span style="color:var(--mu);font-size:11px">القرارات: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--ok-l);border-radius:var(--rs);border-right:3px solid var(--ok)">${m.decisions.replace(/\n/g,'<br>')}</div></div></div>`:''}
-      ${m.nextActions?`<div class="mc-row"><i class="ti ti-arrow-right" style="color:var(--pr)"></i><div><span style="color:var(--mu);font-size:11px">الإجراءات التالية: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--pr-l);border-radius:var(--rs)">${m.nextActions.replace(/\n/g,'<br>')}</div></div></div>`:''}
+      ${m.nextActions?`<div class="mc-row"><i class="ti ti-arrow-right" style="color:var(--pr)"></i><div><span style="color:var(--mu);font-size:11px">الاجراءات التالية: </span><div class="mc-row-val" style="margin-top:3px;padding:8px;background:var(--pr-l);border-radius:var(--rs)">${m.nextActions.replace(/\n/g,'<br>')}</div></div></div>`:''}
     </div>
     <div class="mc-actions">
-      ${m.status!=='done'?`<button class="mc-btn done-btn" onclick="setMeetingDone(${m.id})"><i class="ti ti-check"></i>تم الاجتماع</button>`:''}
-      ${m.status!=='cancelled'&&m.status!=='done'?`<button class="mc-btn" onclick="setMeetingStatus(${m.id},'cancelled')"><i class="ti ti-x"></i>إلغاء</button>`:''}
-      <button class="mc-btn wa" onclick="shareMeetingWA(${m.id})"><i class="ti ti-brand-whatsapp"></i>إرسال</button>
+      ${!isDone?`<button class="mc-btn done-btn" onclick="tglMeeting(${m.id})"><i class="ti ti-check"></i>تم الاجتماع</button>`:`<button class="mc-btn" onclick="tglMeeting(${m.id})"><i class="ti ti-refresh"></i>اعادة تفعيل</button>`}
+      ${!isDone&&m.status!=='cancelled'?`<button class="mc-btn cancel-btn" onclick="setMeetingStatus(${m.id},'cancelled')"><i class="ti ti-x"></i>الغاء</button>`:''}
+      <button class="mc-btn wa" onclick="shareMeetingWA(${m.id})"><i class="ti ti-brand-whatsapp"></i>ارسال</button>
       <button class="mc-btn" onclick="openEditMeeting(${m.id})"><i class="ti ti-edit"></i>تعديل</button>
       <button class="mc-btn" onclick="delMeeting(${m.id})" style="color:var(--er)"><i class="ti ti-trash"></i>حذف</button>
     </div>
@@ -1103,10 +1118,6 @@ function saveMeeting(editId=null){
   save();closeM();renderMeetings();toast(editId?'تم تحديث الاجتماع':'تمت إضافة الاجتماع');
 }
 
-function setMeetingDone(id){
-  const m=meetings.find(m=>m.id===id);if(!m)return;
-  m.status='done';save();renderMeetings();toast('تم تحديد الاجتماع كمنتهٍ');
-}
 function setMeetingStatus(id,status){
   const m=meetings.find(m=>m.id===id);if(!m)return;
   m.status=status;save();renderMeetings();

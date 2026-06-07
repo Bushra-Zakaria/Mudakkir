@@ -334,33 +334,72 @@ input:focus,select:focus{border-color:var(--pr)}
     </div>
 
     <div id="panel-reports" class="panel">
-      <div class="rpg">
-        <div class="stat"><div class="stat-lbl">إجمالي المهام</div><div class="stat-v" id="r0">0</div></div>
-        <div class="stat"><div class="stat-lbl">نسبة الإنجاز</div><div class="stat-v" id="r1" style="color:var(--ok)">0%</div></div>
-        <div class="stat"><div class="stat-lbl">اجتماعات</div><div class="stat-v" id="r2" style="color:var(--in)">0</div></div>
-        <div class="stat"><div class="stat-lbl">مؤجلة</div><div class="stat-v" id="r3" style="color:var(--wn)">0</div></div>
+      <!-- ملخص إحصائي شامل -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px">
+        <div class="stat"><div class="stat-lbl"><i class="ti ti-checkbox" style="font-size:11px"></i> المهام</div><div class="stat-v" id="r0">0</div><div class="stat-s" id="r0s"></div></div>
+        <div class="stat"><div class="stat-lbl"><i class="ti ti-users-group" style="font-size:11px"></i> الاجتماعات</div><div class="stat-v" id="r2" style="color:var(--in)">0</div><div class="stat-s" id="r2s"></div></div>
+        <div class="stat"><div class="stat-lbl"><i class="ti ti-note" style="font-size:11px"></i> الملاحظات</div><div class="stat-v" id="r5" style="color:var(--wn)">0</div><div class="stat-s" id="r5s"></div></div>
+        <div class="stat"><div class="stat-lbl"><i class="ti ti-chart-pie" style="font-size:11px"></i> الانجاز الكلي</div><div class="stat-v" id="r1" style="color:var(--ok)">0%</div><div class="stat-s">من الكل</div></div>
       </div>
-      <div class="sec-t" style="margin-bottom:9px">توزيع المهام</div>
-      <div id="rbars"></div>
-      <div class="sec-hdr" style="margin-top:18px">
-        <div class="sec-t">سجل المهام</div>
-        <select id="rfilter" onchange="renderRTasks()" style="font-size:11px;padding:4px 8px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);color:var(--tx);font-family:var(--fn)">
-          <option value="all">الكل</option>
-          <option value="pending">قيد التنفيذ</option>
-          <option value="done">مكتملة</option>
-          <option value="delayed">مؤجلة</option>
-          <option value="meeting">اجتماعات</option>
-          <option value="urgent">عاجلة</option>
-        </select>
+      <!-- أشرطة التوزيع -->
+      <div style="background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">
+        <div class="sec-t" style="margin-bottom:12px">نظرة عامة على الانجاز</div>
+        <div id="rbars"></div>
       </div>
-      <div class="tl" id="rtasks"></div>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bd)">
-        <div class="sec-t" style="margin-bottom:12px">تصدير ومشاركة</div>
+      <!-- تحديد محتوى التقرير -->
+      <div style="background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">
+        <div class="sec-t" style="margin-bottom:12px"><i class="ti ti-filter" style="font-size:13px"></i> حدد محتوى التقرير</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:12px;transition:border-color .15s" id="lbl-tasks">
+            <input type="checkbox" id="inc-tasks" checked onchange="toggleReportSection('tasks')" style="width:15px;height:15px;accent-color:var(--pr)">
+            <i class="ti ti-checkbox" style="color:var(--pr)"></i> المهام
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:12px;transition:border-color .15s" id="lbl-meetings">
+            <input type="checkbox" id="inc-meetings" checked onchange="toggleReportSection('meetings')" style="width:15px;height:15px;accent-color:var(--in)">
+            <i class="ti ti-users-group" style="color:var(--in)"></i> الاجتماعات
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:12px;transition:border-color .15s" id="lbl-notes">
+            <input type="checkbox" id="inc-notes" checked onchange="toggleReportSection('notes')" style="width:15px;height:15px;accent-color:var(--wn)">
+            <i class="ti ti-note" style="color:var(--wn)"></i> الملاحظات
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:12px;transition:border-color .15s" id="lbl-calendar">
+            <input type="checkbox" id="inc-calendar" checked onchange="toggleReportSection('calendar')" style="width:15px;height:15px;accent-color:var(--ok)">
+            <i class="ti ti-calendar" style="color:var(--ok)"></i> المواعيد
+          </label>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <span style="font-size:11px;color:var(--mu);padding-top:4px">فلتر المهام:</span>
+          <select id="rfilter" onchange="renderReportPreview()" style="font-size:11px;padding:4px 8px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);color:var(--tx);font-family:var(--fn)">
+            <option value="all">جميع المهام</option>
+            <option value="pending">قيد التنفيذ</option>
+            <option value="done">المكتملة فقط</option>
+            <option value="delayed">المؤجلة فقط</option>
+            <option value="urgent">العاجلة فقط</option>
+          </select>
+          <span style="font-size:11px;color:var(--mu);padding-top:4px;margin-right:6px">فلتر الاجتماعات:</span>
+          <select id="rmfilter" onchange="renderReportPreview()" style="font-size:11px;padding:4px 8px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--card);color:var(--tx);font-family:var(--fn)">
+            <option value="all">جميع الاجتماعات</option>
+            <option value="upcoming">القادمة</option>
+            <option value="done">المنتهية</option>
+          </select>
+        </div>
+      </div>
+      <!-- معاينة التقرير -->
+      <div style="background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="sec-t"><i class="ti ti-eye" style="font-size:13px"></i> معاينة التقرير</div>
+          <span id="report-count" style="font-size:11px;color:var(--mu)"></span>
+        </div>
+        <div id="report-preview"></div>
+      </div>
+      <!-- أزرار التصدير -->
+      <div style="background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px">
+        <div class="sec-t" style="margin-bottom:12px"><i class="ti ti-download" style="font-size:13px"></i> تصدير ومشاركة</div>
         <div class="export-grid">
-          <button class="exp-btn" onclick="exportPDF('all')" style="background:var(--er-l);border-color:#f7c1c1;color:#791F1F"><i class="ti ti-file-type-pdf" style="font-size:22px"></i>تصدير الكل PDF</button>
-          <button class="exp-btn" onclick="exportPDF('filtered')" style="background:var(--pr-l);border-color:#CECBF6;color:var(--pr-d)"><i class="ti ti-file-export" style="font-size:22px"></i>تصدير المحدد</button>
-          <button class="exp-btn" onclick="shareReportWA()" style="background:var(--wa-l);border-color:#9FE1CB;color:#085041"><i class="ti ti-brand-whatsapp" style="font-size:22px;color:var(--wa)"></i>مشاركة واتساب</button>
-          <button class="exp-btn" onclick="exportPDF('print')" style="background:var(--in-l);border-color:#B5D4F4;color:#0C447C"><i class="ti ti-printer" style="font-size:22px"></i>طباعة</button>
+          <button class="exp-btn" onclick="exportFullPDF()" style="background:var(--er-l);border-color:#f7c1c1;color:#791F1F"><i class="ti ti-file-type-pdf" style="font-size:22px"></i>تصدير PDF</button>
+          <button class="exp-btn" onclick="printReport()" style="background:var(--in-l);border-color:#B5D4F4;color:#0C447C"><i class="ti ti-printer" style="font-size:22px"></i>طباعة</button>
+          <button class="exp-btn" onclick="shareFullReportWA()" style="background:var(--wa-l);border-color:#9FE1CB;color:#085041"><i class="ti ti-brand-whatsapp" style="font-size:22px;color:var(--wa)"></i>مشاركة واتساب</button>
+          <button class="exp-btn" onclick="selectAllReport()" style="background:var(--ok-l);border-color:#C0DD97;color:#085041"><i class="ti ti-check-all" style="font-size:22px"></i>تحديد الكل</button>
         </div>
       </div>
     </div>
@@ -530,12 +569,19 @@ function renderAll(){
   document.getElementById('atasks').innerHTML=tasks.length?tasks.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>لا توجد مهام</div>';
   document.getElementById('watasks').innerHTML=tasks.filter(t=>t.src==='wa').map(tc).join('')||'<div class="empty"><i class="ti ti-brand-whatsapp"></i>لا توجد مهام مستوردة</div>';
   document.getElementById('r0').textContent=tasks.length;
-  document.getElementById('r1').textContent=tasks.length?Math.round(done.length/tasks.length*100)+'%':'0%';
-  document.getElementById('r2').textContent=mtg.length;
-  document.getElementById('r3').textContent=del.length;
-  const tp=[{l:'اجتماعات',c:mtg.length,col:'var(--in)'},{l:'مهام',c:tasks.filter(t=>t.type==='task').length,col:'var(--pr)'},{l:'مكتملة',c:done.length,col:'var(--ok)'},{l:'مؤجلة',c:del.length,col:'var(--wn)'}];
-  document.getElementById('rbars').innerHTML=tp.map(x=>`<div class="pr"><div class="pl">${x.l}</div><div class="pb"><div class="pf" style="width:${tasks.length?Math.round(x.c/tasks.length*100):0}%;background:${x.col}"></div></div><div class="pp">${x.c}</div></div>`).join('');
-  renderRTasks();renderCal();renderNotes();renderContacts();renderCMini();renderMeetings();
+  if(document.getElementById('r0s'))document.getElementById('r0s').textContent=`${done.length} مكتملة`;
+  const totalAll=tasks.length+meetings.length+notes.length;
+  const totalDone=done.length+meetings.filter(m=>m.status==='done').length+notes.filter(n=>n.status==='done').length;
+  document.getElementById('r1').textContent=totalAll?Math.round(totalDone/totalAll*100)+'%':'0%';
+  document.getElementById('r2').textContent=meetings.length;
+  if(document.getElementById('r2s'))document.getElementById('r2s').textContent=`${meetings.filter(m=>m.status==='done').length} منتهية`;
+  if(document.getElementById('r5'))document.getElementById('r5').textContent=notes.length;
+  if(document.getElementById('r5s'))document.getElementById('r5s').textContent=`${notes.filter(n=>n.status==='done').length} منجزة`;
+  const tp=[{l:'مهام قيد التنفيذ',c:tasks.filter(t=>t.status==='pending').length,col:'var(--pr)'},{l:'مهام مكتملة',c:done.length,col:'var(--ok)'},{l:'مهام مؤجلة',c:del.length,col:'var(--wn)'},{l:'اجتماعات',c:meetings.length,col:'var(--in)'},{l:'ملاحظات',c:notes.length,col:'#BA7517'}];
+  const mx=Math.max(...tp.map(x=>x.c),1);
+  document.getElementById('rbars').innerHTML=tp.map(x=>`<div class="pr"><div class="pl" style="font-size:11px;width:110px">${x.l}</div><div class="pb"><div class="pf" style="width:${Math.round(x.c/mx*100)}%;background:${x.col}"></div></div><div class="pp">${x.c}</div></div>`).join('');
+  if(document.getElementById('report-preview'))renderReportPreview();
+  renderCal();renderNotes();renderContacts();renderCMini();renderMeetings();
 }
 
 function filterHome(type){
@@ -550,11 +596,211 @@ function filterHome(type){
   document.getElementById('htasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>لا توجد مهام في هذه الفئة</div>';
 }
 
-function renderRTasks(){
-  const f=document.getElementById('rfilter');
-  const v=f?f.value:'all';
-  let list=v==='pending'?tasks.filter(t=>t.status==='pending'):v==='done'?tasks.filter(t=>t.status==='done'):v==='delayed'?tasks.filter(t=>t.status==='delayed'):v==='meeting'?tasks.filter(t=>t.type==='meeting'):v==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
-  document.getElementById('rtasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>لا توجد مهام</div>';
+// ─── REPORTS ─────────────────────────────────────────────────────────────
+function renderRTasks(){renderReportPreview();}
+
+function getFilteredTasks(){
+  const v=document.getElementById('rfilter')?document.getElementById('rfilter').value:'all';
+  if(v==='pending')return tasks.filter(t=>t.status==='pending');
+  if(v==='done')return tasks.filter(t=>t.status==='done');
+  if(v==='delayed')return tasks.filter(t=>t.status==='delayed');
+  if(v==='urgent')return tasks.filter(t=>t.prio==='high'&&t.status!=='done');
+  return tasks;
+}
+function getFilteredMeetings(){
+  const v=document.getElementById('rmfilter')?document.getElementById('rmfilter').value:'all';
+  if(v==='upcoming')return meetings.filter(m=>m.status==='upcoming'||m.status==='inprogress');
+  if(v==='done')return meetings.filter(m=>m.status==='done');
+  return meetings;
+}
+function incTasks(){return document.getElementById('inc-tasks')?.checked;}
+function incMeetings(){return document.getElementById('inc-meetings')?.checked;}
+function incNotes(){return document.getElementById('inc-notes')?.checked;}
+function incCalendar(){return document.getElementById('inc-calendar')?.checked;}
+
+function toggleReportSection(sec){
+  const lbl=document.getElementById('lbl-'+sec);
+  const checked=document.getElementById('inc-'+sec)?.checked;
+  if(lbl)lbl.style.borderColor=checked?'var(--pr)':'var(--bd)';
+  renderReportPreview();
+}
+function selectAllReport(){
+  ['tasks','meetings','notes','calendar'].forEach(s=>{
+    const cb=document.getElementById('inc-'+s);if(cb)cb.checked=true;
+    const lbl=document.getElementById('lbl-'+s);if(lbl)lbl.style.borderColor='var(--pr)';
+  });
+  renderReportPreview();
+}
+
+function renderReportPreview(){
+  const tList=incTasks()?getFilteredTasks():[];
+  const mList=incMeetings()?getFilteredMeetings():[];
+  const nList=incNotes()?notes:[];
+  const cList=incCalendar()?tasks.filter(t=>t.date):[];
+  const total=tList.length+mList.length+nList.length;
+  const el=document.getElementById('report-preview');
+  const cnt=document.getElementById('report-count');
+  if(cnt)cnt.textContent=`${total} عنصر محدد`;
+  let html='';
+  if(tList.length){
+    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--pr);margin-bottom:7px;display:flex;align-items:center;gap:6px"><i class="ti ti-checkbox"></i> المهام (${tList.length})</div>`;
+    html+=`<div class="tl">${tList.map(t=>tc(t)).join('')}</div></div>`;
+  }
+  if(mList.length){
+    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--in);margin-bottom:7px;display:flex;align-items:center;gap:6px"><i class="ti ti-users-group"></i> الاجتماعات (${mList.length})</div>`;
+    html+=mList.map(m=>{
+      const tl=mtypeLabels[m.mtype]||'اجتماع';
+      const st=mstatusLabels[m.status]||'قادم';
+      return`<div class="tc" style="margin-bottom:6px${m.status==='done'?';opacity:.6':''}">
+        <div class="chk${m.status==='done'?' done':''}">${m.status==='done'?'<i class="ti ti-check"></i>':''}</div>
+        <div class="tb">
+          <div class="tt${m.status==='done'?' stk':''}">${m.title}</div>
+          <div class="tm">
+            <span class="badge bm">${tl}</span>
+            <span class="badge" style="background:var(--bg);color:var(--mu)">${st}</span>
+            ${m.date?`<span class="ttime"><i class="ti ti-calendar" style="font-size:11px"></i>${fd(m.date)}${m.time?' - '+m.time:''}</span>`:''}
+            ${m.location?`<span class="ttime"><i class="ti ti-map-pin" style="font-size:11px"></i>${m.location}</span>`:''}
+          </div>
+          ${m.decisions?`<div style="font-size:11px;color:var(--mu);margin-top:4px;padding:5px 8px;background:var(--ok-l);border-radius:var(--rs);border-right:2px solid var(--ok)">القرارات: ${m.decisions}</div>`:''}
+        </div>
+      </div>`;}).join('');
+    html+='</div>';
+  }
+  if(nList.length){
+    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--wn);margin-bottom:7px;display:flex;align-items:center;gap:6px"><i class="ti ti-note"></i> الملاحظات (${nList.length})</div>`;
+    html+=`<div class="sgrid">${nList.map(n=>`<div class="sk ${n.color}" style="${n.status==='done'?'opacity:.6':''}">
+      <div class="sk-t" style="${n.status==='done'?'text-decoration:line-through':''}">${n.title}</div>
+      <div class="sk-b">${n.text}</div>
+      ${n.prio&&n.prio!=='normal'?`<div style="font-size:10px;color:${n.prio==='high'?'var(--er)':'var(--wn)'};margin-top:5px;font-weight:600">${n.prio==='high'?'عالية الاهمية':'متوسط الاهمية'}</div>`:''}
+      <div class="sk-d" style="margin-top:6px">${n.date}${n.date2?' - تذكير: '+fd(n.date2):''}</div>
+    </div>`).join('')}</div></div>`;
+  }
+  if(!html)html='<div class="empty"><i class="ti ti-file-off"></i>اختر الاقسام التي تريد تضمينها في التقرير</div>';
+  if(el)el.innerHTML=html;
+}
+
+function buildFullHTML(){
+  const tList=incTasks()?getFilteredTasks():[];
+  const mList=incMeetings()?getFilteredMeetings():[];
+  const nList=incNotes()?notes:[];
+  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  const doneT=tList.filter(t=>t.status==='done').length;
+  const doneM=mList.filter(m=>m.status==='done').length;
+  const doneN=nList.filter(n=>n.status==='done').length;
+  const total=tList.length+mList.length+nList.length;
+  const totalDone=doneT+doneM+doneN;
+  const pct=total?Math.round(totalDone/total*100):0;
+
+  let tasksHTML='',meetingsHTML='',notesHTML='';
+  if(tList.length){
+    tasksHTML=`<h2 style="font-size:15px;color:#6C63FF;border-bottom:2px solid #6C63FF;padding-bottom:6px;margin:20px 0 12px">المهام (${tList.length})</h2>
+    <table><thead><tr><th>المهمة</th><th>النوع</th><th>التاريخ</th><th>الاولوية</th><th>الحالة</th></tr></thead><tbody>
+    ${tList.map(t=>{
+      const st=t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ';
+      const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';
+      const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';
+      return`<tr><td style="font-weight:500${t.status==='done'?';text-decoration:line-through;color:#999':''}">${t.title}${t.body?`<br><small style="color:#888;font-weight:400">${t.body}</small>`:''}</td>
+      <td>${tp}</td><td>${fd(t.date)}${t.time?' '+t.time:''}</td>
+      <td>${t.prio==='high'?'<span style="color:#E24B4A;font-weight:600">عاجل</span>':'عادي'}</td>
+      <td style="color:${stc};font-weight:500">${st}</td></tr>`;}).join('')}
+    </tbody></table>`;
+  }
+  if(mList.length){
+    meetingsHTML=`<h2 style="font-size:15px;color:#378ADD;border-bottom:2px solid #378ADD;padding-bottom:6px;margin:20px 0 12px">الاجتماعات (${mList.length})</h2>`;
+    mList.forEach(m=>{
+      const tl=mtypeLabels[m.mtype]||'اجتماع';
+      const st=mstatusLabels[m.status]||'قادم';
+      meetingsHTML+=`<div style="border:1px solid #e8e6f0;border-radius:10px;padding:12px 14px;margin-bottom:10px${m.status==='done'?';opacity:.7':''}">
+        <div style="font-size:14px;font-weight:700${m.status==='done'?';text-decoration:line-through':''}">
+          ${m.title} <span style="font-size:11px;background:#E6F1FB;color:#0C447C;padding:2px 7px;border-radius:99px;font-weight:500">${tl}</span>
+          <span style="font-size:11px;background:${m.status==='done'?'#E1F5EE':'#F8F7FF'};color:${m.status==='done'?'#1D9E75':'#6b6880'};padding:2px 7px;border-radius:99px;font-weight:500">${st}</span>
+        </div>
+        ${m.date?`<div style="font-size:12px;color:#6b6880;margin-top:4px">التاريخ: ${fd(m.date)}${m.time?' - '+m.time:''}${m.duration?' ('+m.duration+' دقيقة)':''}</div>`:''}
+        ${m.location?`<div style="font-size:12px;color:#6b6880">المكان: ${m.location}</div>`:''}
+        ${m.organizer?`<div style="font-size:12px;color:#6b6880">المنظم: ${m.organizer}</div>`:''}
+        ${m.attendees?`<div style="font-size:12px;color:#6b6880">الحضور: ${m.attendees}</div>`:''}
+        ${m.agenda?`<div style="font-size:12px;margin-top:6px;padding:7px 10px;background:#F8F7FF;border-radius:6px;border-right:3px solid #378ADD"><strong>جدول الاعمال:</strong><br>${m.agenda.replace(/\n/g,'<br>')}</div>`:''}
+        ${m.decisions?`<div style="font-size:12px;margin-top:6px;padding:7px 10px;background:#E1F5EE;border-radius:6px;border-right:3px solid #1D9E75"><strong>القرارات:</strong><br>${m.decisions.replace(/\n/g,'<br>')}</div>`:''}
+        ${m.nextActions?`<div style="font-size:12px;margin-top:6px;padding:7px 10px;background:#EEEDFE;border-radius:6px;border-right:3px solid #6C63FF"><strong>الاجراءات التالية:</strong><br>${m.nextActions.replace(/\n/g,'<br>')}</div>`:''}
+      </div>`;
+    });
+  }
+  if(nList.length){
+    notesHTML=`<h2 style="font-size:15px;color:#BA7517;border-bottom:2px solid #BA7517;padding-bottom:6px;margin:20px 0 12px">الملاحظات (${nList.length})</h2>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+    ${nList.map(n=>{
+      const bg={sy:'#FAEEDA',sp:'#EEEDFE',sg:'#EAF3DE',sb2:'#E6F1FB',sc:'#FAECE7'}[n.color]||'#F8F7FF';
+      const bd={sy:'#FAC775',sp:'#CECBF6',sg:'#C0DD97',sb2:'#B5D4F4',sc:'#F5C4B3'}[n.color]||'#e8e6f0';
+      return`<div style="background:${bg};border:1px solid ${bd};border-radius:10px;padding:12px${n.status==='done'?';opacity:.6':''}">
+        <div style="font-size:13px;font-weight:700;color:#2C2C2A${n.status==='done'?';text-decoration:line-through':''};margin-bottom:5px">${n.title}</div>
+        <div style="font-size:12px;color:#5F5E5A;line-height:1.5">${n.text}</div>
+        ${n.prio&&n.prio!=='normal'?`<div style="font-size:10px;color:${n.prio==='high'?'#E24B4A':'#BA7517'};font-weight:600;margin-top:5px">${n.prio==='high'?'عالية الاهمية':'متوسط الاهمية'}</div>`:''}
+        <div style="font-size:10px;color:#888;margin-top:6px">${n.date}${n.date2?' - تذكير: '+fd(n.date2):''}</div>
+      </div>`;}).join('')}
+    </div>`;
+  }
+
+  return`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    @media print{body{margin:0}@page{margin:15mm;size:A4}}
+    body{font-family:'Tajawal',Arial,sans-serif;margin:0;padding:24px;color:#1a1a2e;background:#fff;font-size:13px}
+    .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid #6C63FF}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-box{width:44px;height:44px;background:#6C63FF;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+    .sc{background:#F8F7FF;border-radius:10px;padding:12px;text-align:center;border:1px solid #e8e6f0}
+    .sv{font-size:22px;font-weight:700;margin-bottom:2px}.sl{font-size:11px;color:#6b6880}
+    table{width:100%;border-collapse:collapse;margin-bottom:10px}
+    th{background:#6C63FF;color:#fff;padding:9px 10px;font-size:12px;text-align:right;font-weight:500}
+    td{padding:8px 10px;border-bottom:1px solid #f0eef8;font-size:12px}
+    tr:nth-child(even) td{background:#F8F7FF}
+    .footer{margin-top:24px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#a09db8;text-align:center}
+  </style></head><body>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-box">&#128276;</div>
+      <div><div style="font-size:20px;font-weight:700">تقرير مذكر</div><div style="font-size:11px;color:#6b6880">المساعد الذكي للمواعيد والاعمال</div></div>
+    </div>
+    <div style="text-align:left">
+      <div style="font-size:13px;font-weight:500;color:#1a1a2e">تاريخ التقرير: ${ds}</div>
+      <div style="font-size:11px;color:#6b6880;margin-top:3px">اجمالي العناصر: ${total} | المنجز: ${totalDone} (${pct}%)</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="sc"><div class="sv" style="color:#6C63FF">${tList.length}</div><div class="sl">المهام</div></div>
+    <div class="sc"><div class="sv" style="color:#378ADD">${mList.length}</div><div class="sl">الاجتماعات</div></div>
+    <div class="sc"><div class="sv" style="color:#BA7517">${nList.length}</div><div class="sl">الملاحظات</div></div>
+    <div class="sc"><div class="sv" style="color:#1D9E75">${pct}%</div><div class="sl">نسبة الانجاز</div></div>
+  </div>
+  ${tasksHTML}${meetingsHTML}${notesHTML}
+  <div class="footer">تم انشاء هذا التقرير بواسطة تطبيق مذكر - ${ds}</div>
+  </body></html>`;}
+
+function exportFullPDF(){
+  const w=window.open('','_blank');
+  w.document.write(buildFullHTML());
+  w.document.close();
+  setTimeout(()=>w.print(),700);
+  toast('اختر حفظ كـ PDF عند الطباعة');
+}
+function printReport(){exportFullPDF();}
+
+function shareFullReportWA(){
+  if(!contacts.length){toast('اضف جهة اتصال اولاً');return;}
+  const tList=incTasks()?getFilteredTasks():[];
+  const mList=incMeetings()?getFilteredMeetings():[];
+  const nList=incNotes()?notes:[];
+  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  const total=tList.length+mList.length+nList.length;
+  const done=tList.filter(t=>t.status==='done').length+mList.filter(m=>m.status==='done').length+nList.filter(n=>n.status==='done').length;
+  const pct=total?Math.round(done/total*100):0;
+  let msg=`* تقرير مذكر - ${ds} *\n\nاجمالي: ${total} عنصر\nمنجز: ${done} (${pct}%)`;
+  if(tList.length){msg+=`\n\nالمهام (${tList.length}):\n${tList.slice(0,5).map(t=>`- ${t.title} [${t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ'}]`).join('\n')}${tList.length>5?`\n...و${tList.length-5} اخرى`:''}`;}
+  if(mList.length){msg+=`\n\nالاجتماعات (${mList.length}):\n${mList.slice(0,3).map(m=>`- ${m.title} [${fd(m.date)}]`).join('\n')}`;}
+  if(nList.length){msg+=`\n\nالملاحظات (${nList.length}):\n${nList.slice(0,3).map(n=>`- ${n.title}`).join('\n')}`;}
+  msg+='\n\n-- مذكر';
+  showContactPicker(msg);
 }
 
 function renderCal(){
@@ -915,73 +1161,6 @@ function fireNoteNotif(id){
   document.getElementById('nover').style.display='flex';
   startAlarm();
 }
-
-function getFiltered(){
-  const f=document.getElementById('rfilter'),v=f?f.value:'all';
-  return v==='pending'?tasks.filter(t=>t.status==='pending'):v==='done'?tasks.filter(t=>t.status==='done'):v==='delayed'?tasks.filter(t=>t.status==='delayed'):v==='meeting'?tasks.filter(t=>t.type==='meeting'):v==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
-}
-function buildHTML(list,label=''){
-  const done=list.filter(t=>t.status==='done').length,pct=list.length?Math.round(done/list.length*100):0;
-  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-  const rows=list.map(t=>{
-    const st=t.status==='done'?'مكتمل':t.status==='delayed'?'مؤجل':'قيد التنفيذ';
-    const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';
-    const tp=t.type==='meeting'?'اجتماع':t.type==='task'?'مهمة':'ملاحظة';
-    const bodyRow=t.body?`<tr><td colspan="4" style="padding:4px 10px 10px;font-size:11px;color:#555;background:#f9f8ff;border-bottom:1px solid #eee;border-right:3px solid #6C63FF">${t.body}</td></tr>`:'';
-    return`<tr><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:13px;font-weight:500">${t.title}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;color:#666">${tp}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;color:#666">${fd(t.date)}${t.time?' '+t.time:''}</td><td style="padding:8px 10px;border-bottom:${t.body?'none':'1px solid #eee'};font-size:12px;font-weight:500;color:${stc}">${st}</td></tr>${bodyRow}`;
-  }).join('');
-  return`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><style>
-    @media print{body{margin:0}@page{margin:15mm}}
-    body{font-family:'Tajawal',Arial,sans-serif;margin:0;padding:24px;color:#1a1a2e}
-    .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #6C63FF}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-    .sc{background:#F8F7FF;border-radius:10px;padding:12px;text-align:center}
-    .sv{font-size:22px;font-weight:700;margin-bottom:2px}.sl{font-size:11px;color:#6b6880}
-    table{width:100%;border-collapse:collapse}
-    th{background:#6C63FF;color:#fff;padding:10px;font-size:13px;text-align:right;font-weight:500}
-    tr:nth-child(4n+1) td{background:#fff}tr:nth-child(4n+3) td{background:#F8F7FF}
-    .footer{margin-top:20px;padding-top:12px;border-top:1px solid #eee;font-size:11px;color:#a09db8;text-align:center}
-    .lbl{font-size:12px;color:#6C63FF;font-weight:500;margin-bottom:10px}
-  </style></head><body>
-  <div class="hdr">
-    <div><div style="font-size:18px;font-weight:700">🔔 مُذكِّر</div><div style="font-size:11px;color:#6b6880">المساعد الذكي للمواعيد</div></div>
-    <div style="text-align:left"><div style="font-size:12px;color:#6b6880">تقرير بتاريخ: ${ds}</div>${label?`<div class="lbl">${label}</div>`:''}</div>
-  </div>
-  <div class="stats">
-    <div class="sc"><div class="sv" style="color:#6C63FF">${list.length}</div><div class="sl">إجمالي المهام</div></div>
-    <div class="sc"><div class="sv" style="color:#1D9E75">${done}</div><div class="sl">مكتملة</div></div>
-    <div class="sc"><div class="sv" style="color:#378ADD">${list.filter(t=>t.type==='meeting').length}</div><div class="sl">اجتماعات</div></div>
-    <div class="sc"><div class="sv" style="color:#BA7517">${pct}%</div><div class="sl">نسبة الإنجاز</div></div>
-  </div>
-  <table><thead><tr><th>المهمة / الموعد</th><th style="width:80px">النوع</th><th style="width:120px">التاريخ</th><th style="width:90px">الحالة</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="footer">تم إنشاء هذا التقرير بواسطة تطبيق مُذكِّر</div>
-  </body></html>`;}
-
-function exportPDF(mode){
-  if(mode==='print'){
-    const w=window.open('','_blank');
-    w.document.write(buildHTML(getFiltered(),'تصدير المحدد'));
-    w.document.close();
-    setTimeout(()=>w.print(),600);
-    return;
-  }
-  const list=mode==='filtered'?getFiltered():tasks;
-  const label=mode==='filtered'?`فئة: ${document.getElementById('rfilter').options[document.getElementById('rfilter').selectedIndex].text}`:'جميع المهام';
-  const w=window.open('','_blank');
-  w.document.write(buildHTML(list,label));
-  w.document.close();
-  setTimeout(()=>w.print(),600);
-  toast('اختر "حفظ كـ PDF" من نافذة الطباعة');
-}
-
-function shareReportWA(){
-  if(!contacts.length){toast('أضف جهة اتصال أولاً');return;}
-  const list=getFiltered(),done=list.filter(t=>t.status==='done').length,pct=list.length?Math.round(done/list.length*100):0;
-  const now=new Date(),ds=`${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
-  let msg=`* تقرير مذكر - ${ds} *\n\n- الاجمالي: ${list.length}\n- مكتملة: ${done} (${pct}%)\n- قيد التنفيذ: ${list.filter(t=>t.status==='pending').length}\n- مؤجلة: ${list.filter(t=>t.status==='delayed').length}\n- اجتماعات: ${list.filter(t=>t.type==='meeting').length}`;
-  const p=list.filter(t=>t.status==='pending').slice(0,5);
-  if(p.length)msg+='\n\nالمهام المتبقية:\n'+p.map(t=>`- ${t.title} - ${fd(t.date)}${t.time?' '+t.time:''}`).join('\n');
-  showContactPicker(msg);}
 
 // ─── MEETINGS ─────────────────────────────────────────────────────────────
 let curMeetingFilter='all';

@@ -224,6 +224,7 @@ input:focus,select:focus{border-color:var(--pr)}
         <div class="stat" onclick="filterHome('done')" id="sc1"><div class="stat-lbl">مكتملة</div><div class="stat-v" id="s1" style="color:var(--ok)">0</div><div class="stat-s">هذا الأسبوع</div></div>
         <div class="stat" onclick="filterHome('delayed')" id="sc2"><div class="stat-lbl">مؤجلة</div><div class="stat-v" id="s2" style="color:var(--wn)">0</div><div class="stat-s">تحتاج مراجعة</div></div>
         <div class="stat" onclick="filterHome('meeting')" id="sc3"><div class="stat-lbl">اجتماعات</div><div class="stat-v" id="s3" style="color:var(--in)">0</div><div class="stat-s">هذا الأسبوع</div></div>
+        <div class="stat" onclick="sp('sticky',document.querySelector('.nav-item:nth-child(5)'))" id="sc5" style="background:var(--wn-l);border-color:#FAC775"><div class="stat-lbl" style="color:var(--wn)"><i class="ti ti-note" style="font-size:11px"></i> الملاحظات</div><div class="stat-v" id="s5" style="color:var(--wn);font-size:18px">0</div><div class="stat-s" style="color:var(--wn)">اضغط للعرض</div></div>
         <div class="stat" style="grid-column:1/-1;background:var(--er-l);border-color:#f7c1c1" onclick="filterHome('urgent')"><div class="stat-lbl" style="color:var(--er)"><i class="ti ti-bolt" style="font-size:11px"></i> المهام العاجلة</div><div class="stat-v" id="s4" style="color:var(--er);font-size:18px">0</div><div class="stat-s" style="color:var(--er)">اضغط للعرض</div></div>
       </div>
       <div class="sec-hdr">
@@ -478,6 +479,7 @@ function renderAll(){
   document.getElementById('s2').textContent=del.length;
   document.getElementById('s3').textContent=mtg.length;
   document.getElementById('s4').textContent=tasks.filter(t=>t.prio==='high'&&t.status!=='done').length;
+  document.getElementById('s5').textContent=notes.length;
   const nb=document.getElementById('nbt');nb.textContent=urg.length;nb.style.display=urg.length?'inline':'none';
   const aa=document.getElementById('alertarea');
   aa.innerHTML=urg.length?`<div class="alert-bar"><i class="ti ti-bell-exclamation" style="color:var(--er);font-size:17px"></i><div style="flex:1;font-size:12px;color:var(--er);font-weight:500">لديك ${urg.length} مهمة عاجلة اليوم</div><button style="background:none;border:none;cursor:pointer;color:var(--er)" onclick="this.parentElement.remove()"><i class="ti ti-x"></i></button></div>`:'';
@@ -526,10 +528,21 @@ function fbd(ds){document.getElementById('cetitle').textContent=`مواعيد ${
 function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
 
 function renderNotes(){
-  document.getElementById('sgrid').innerHTML=notes.map(n=>`
-    <div class="sk ${n.color}">
-      <div class="sk-t">${n.title}</div>
+  const prioLabel={high:'عالية الاهمية',medium:'متوسط الاهمية',normal:'عادي'};
+  const prioColor={high:'var(--er)',medium:'var(--wn)',normal:'var(--ok)'};
+  document.getElementById('sgrid').innerHTML=notes.map(n=>{
+    const hasPrio=n.prio&&n.prio!=='normal';
+    const hasDate=n.date2;
+    const isToday=n.date2===tstr();
+    return`<div class="sk ${n.color}" style="${isToday?'border-color:var(--er);border-width:2px':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:6px">
+        <div class="sk-t">${n.title}</div>
+        ${hasPrio?`<span style="font-size:9px;padding:2px 6px;border-radius:var(--rf);background:rgba(255,255,255,.75);color:${prioColor[n.prio]};font-weight:600;white-space:nowrap;flex-shrink:0">${prioLabel[n.prio]}</span>`:''}
+      </div>
       <div class="sk-b">${n.text}</div>
+      ${hasDate?`<div style="font-size:10px;color:${isToday?'var(--er)':'#666'};margin-top:7px;display:flex;align-items:center;gap:4px;font-weight:${isToday?'700':'400'}">
+        <i class="ti ti-bell" style="font-size:11px"></i>${isToday?'اليوم!':fd(n.date2)}${n.time?' - '+n.time:''}
+      </div>`:''}
       <div class="sk-footer">
         <div class="sk-d"><i class="ti ti-calendar" style="font-size:10px"></i> ${n.date}</div>
         <div class="sk-acts">
@@ -538,7 +551,7 @@ function renderNotes(){
           <button class="sk-btn" onclick="delNote(${n.id})" title="حذف"><i class="ti ti-trash" style="color:var(--er)"></i></button>
         </div>
       </div>
-    </div>`).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ti ti-note"></i>لا توجد ملاحظات — اضغط إضافة ملاحظة</div>';
+    </div>`;}).join('')||'<div class="empty" style="grid-column:1/-1"><i class="ti ti-note"></i>لا توجد ملاحظات — اضغط إضافة ملاحظة</div>';
 }
 function renderContacts(){document.getElementById('cgrid').innerHTML=contacts.map(c=>`<div class="cc"><div class="cc-hdr"><div class="av" style="background:${c.color}20;color:${c.color};font-size:11px">${c.ini||gi(c.name)}</div><div><div style="font-size:13px;font-weight:500">${c.name}</div><div style="font-size:10px;color:var(--mu)">${c.role||''}</div></div></div><div class="cf"><i class="ti ti-phone"></i><span>+${c.phone}</span></div><div class="cacts"><button class="bsm" onclick="waSend(${c.id})"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i>إرسال</button><button class="bsm" onclick="editC(${c.id})"><i class="ti ti-edit"></i>تعديل</button><button class="bsm" onclick="delC(${c.id})" style="color:var(--er)"><i class="ti ti-trash"></i>حذف</button></div></div>`).join('')||'<div class="empty"><i class="ti ti-users"></i>لا توجد جهات اتصال</div>';}
 function renderCMini(){document.getElementById('cmini').innerHTML=contacts.slice(0,3).map(c=>`<div class="c-chip" onclick="waSend(${c.id})"><div class="av" style="background:${c.color}20;color:${c.color}">${c.ini||gi(c.name)}</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div style="font-size:10px;color:var(--mu)">+${c.phone}</div></div><i class="ti ti-brand-whatsapp" style="color:var(--wa);font-size:13px"></i></div>`).join('');}
@@ -663,7 +676,20 @@ function openAddSticky(editId=null){
   M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
     <div class="modal-t"><i class="ti ti-note" style="color:var(--wn)"></i>${n?'تعديل الملاحظة':'إضافة ملاحظة'}</div>
     <div class="fg"><label class="fl">العنوان</label><input type="text" id="nt" value="${n?n.title.replace(/"/g,'&quot;'):''}" placeholder="عنوان الملاحظة..."></div>
-    <div class="fg"><label class="fl">النص</label><textarea id="nb" placeholder="اكتب ملاحظتك هنا..." style="min-height:90px">${n?n.text:''}</textarea></div>
+    <div class="fg"><label class="fl">النص / التفاصيل</label><textarea id="nb" placeholder="اكتب ملاحظتك هنا..." style="min-height:90px">${n?n.text:''}</textarea></div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">الأولوية</label>
+        <select id="nprio">
+          <option value="high"${n&&n.prio==='high'?' selected':''}>عالية الاهمية</option>
+          <option value="medium"${n&&n.prio==='medium'?' selected':''}>متوسط الاهمية</option>
+          <option value="normal"${(!n||!n.prio||n.prio==='normal')?' selected':''}>عادي</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg" style="flex:1"><label class="fl">تاريخ التذكير (اختياري)</label><input type="date" id="nd" value="${n&&n.date2?n.date2:''}"></div>
+      <div class="fg" style="flex:1"><label class="fl">الوقت</label><input type="time" id="nti" value="${n&&n.time?n.time:'09:00'}"></div>
+    </div>
     <div class="fg"><label class="fl">اللون</label>
       <div style="display:flex;gap:8px;margin-top:4px">
         ${[['sy','#FAEEDA','#FAC775'],['sp','#EEEDFE','#CECBF6'],['sg','#EAF3DE','#C0DD97'],['sb2','#E6F1FB','#B5D4F4'],['sc','#FAECE7','#F5C4B3']].map(([val,bg,bd])=>`
@@ -695,6 +721,9 @@ function saveEditNote(id){
   const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
   if(!tt||!nb){alert('يرجى تعبئة جميع الحقول');return;}
   n.title=tt;n.text=nb;n.color=document.getElementById('nc').value;
+  n.prio=document.getElementById('nprio').value;
+  n.date2=document.getElementById('nd').value;
+  n.time=document.getElementById('nti').value;
   save();closeM();renderNotes();toast('تم تحديث الملاحظة');
 }
 
@@ -704,10 +733,17 @@ function shareNote(id){
   showContactPicker(`* ملاحظة: ${n.title} *\n\n${n.text}\n\n-- مذكر`);
 }
 
-function saveNote(){const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
+function saveNote(){
+  const tt=document.getElementById('nt').value.trim(),nb=document.getElementById('nb').value.trim();
   if(!tt||!nb){alert('يرجى تعبئة جميع الحقول');return;}
-  const d=new Date();notes.push({id:nid++,title:tt,text:nb,color:document.getElementById('nc').value,date:`${d.getDate()} ${MN[d.getMonth()]}`});
-  save();closeM();renderAll();toast('تمت إضافة الملاحظة');}
+  const d=new Date();
+  notes.push({id:nid++,title:tt,text:nb,color:document.getElementById('nc').value,
+    date:`${d.getDate()} ${MN[d.getMonth()]}`,
+    prio:document.getElementById('nprio').value,
+    date2:document.getElementById('nd').value,
+    time:document.getElementById('nti').value});
+  save();closeM();renderAll();toast('تمت إضافة الملاحظة');
+}
 
 function openAddContact(eid=null){const c=eid?contacts.find(c=>c.id===eid):null;
   M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal">
@@ -780,7 +816,7 @@ function fireNotif(id){
 }
 function closeN(act){
   stopAlarm();
-  if(act==='done'&&curN)tgl(curN);
+  if(act==='done'&&curN&&!String(curN).startsWith('note_'))tgl(curN);
   document.getElementById('nover').style.display='none';curN=null;
 }
 function showDelay(){
@@ -810,7 +846,22 @@ function confirmDelay(){
 function chkAlarms(){
   const ts=tstr(),now=new Date(),hh=String(now.getHours()).padStart(2,'0'),mm=String(now.getMinutes()).padStart(2,'0'),cur=hh+':'+mm;
   tasks.forEach(t=>{const cd=t.delayDate||t.date,ct=t.delayTime||t.time;
-    if(t.status!=='done'&&cd===ts&&ct===cur&&!_fired[t.id]){_fired[t.id]=1;fireNotif(t.id);}});}
+    if(t.status!=='done'&&cd===ts&&ct===cur&&!_fired['t'+t.id]){_fired['t'+t.id]=1;fireNotif(t.id);}});
+  notes.forEach(n=>{
+    if(n.date2===ts&&n.time===cur&&!_fired['n'+n.id]){
+      _fired['n'+n.id]=1;fireNoteNotif(n.id);}});
+}
+
+function fireNoteNotif(id){
+  const n=notes.find(n=>n.id===id);if(!n)return;
+  curN='note_'+id;
+  document.getElementById('ntitle').textContent='ملاحظة: '+n.title;
+  document.getElementById('nbody').textContent=`${n.text}\n\nهذا التذكير يبقى نشطاً حتى تغلقه يدوياً.`;
+  document.getElementById('nbellicon').className='ti ti-bell-ringing nbell';
+  document.getElementById('nbellmuted').style.display='none';
+  document.getElementById('nover').style.display='flex';
+  startAlarm();
+}
 
 function getFiltered(){
   const f=document.getElementById('rfilter'),v=f?f.value:'all';

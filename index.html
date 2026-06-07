@@ -1129,7 +1129,9 @@ function shareMeetingWA(id){
   if(m.nextActions)msg+=`\n\nالاجراءات التالية:\n${m.nextActions}`;
   msg+='\n\n-- مذكر';
   showContactPicker(msg);
-}const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
+}
+
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
 
 const nd=new Date();
 document.getElementById('dtlbl').textContent=`${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]} ${nd.getFullYear()}`;

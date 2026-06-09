@@ -174,6 +174,21 @@ input:focus,select:focus{border-color:var(--pr)}
 @keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .export-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .exp-btn{border-radius:var(--r);padding:12px 8px;cursor:pointer;font-family:var(--fn);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;font-weight:500;border:1px solid}
+/* ATTACHMENTS */
+.att-zone{border:2px dashed var(--bd);border-radius:var(--rs);padding:12px;text-align:center;cursor:pointer;transition:all .15s;margin-top:8px}
+.att-zone:hover{border-color:var(--pr);background:var(--pr-l)}
+.att-zone i{font-size:24px;color:var(--hi);display:block;margin-bottom:4px}
+.att-zone span{font-size:12px;color:var(--mu)}
+.att-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.att-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border-radius:var(--rs);border:1px solid var(--bd)}
+.att-icon{width:32px;height:32px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.att-info{flex:1;min-width:0}
+.att-name{font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-size{font-size:10px;color:var(--mu)}
+.att-acts{display:flex;gap:4px;flex-shrink:0}
+.att-btn{background:none;border:1px solid var(--bd);border-radius:var(--rs);width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mu);font-size:12px;transition:all .15s}
+.att-btn:hover{background:var(--pr-l);border-color:var(--pr);color:var(--pr)}
+.att-btn.del:hover{background:var(--er-l);border-color:var(--er);color:var(--er)}
 .mfbtn{background:none;border:1px solid var(--bd);border-radius:var(--rf);padding:5px 12px;font-size:12px;cursor:pointer;color:var(--mu);font-family:var(--fn);transition:all .15s}
 .mfbtn:hover{background:var(--pr-l);border-color:var(--pr);color:var(--pr)}
 .mfbtn-active{background:var(--pr);border-color:var(--pr);color:#fff}
@@ -497,7 +512,8 @@ function initFirebase(){
   document.getElementById('fbsetup').style.display='none';
   document.getElementById('fb-ok').style.display='block';
   document.getElementById('fb-info').textContent=`Project: ${pid} | المعرف: ${uid}`;
-  pullFromFB();setInterval(()=>pullFromFB(),5000);
+  pullFromFB();pullAttFromFB();
+  setInterval(()=>{pullFromFB();pullAttFromFB();},5000);
 }
 
 function pushToFB(){
@@ -550,6 +566,7 @@ function tc(t){
     <div class="tacts">
       ${!done?`<button class="bi" onclick="tgl(${t.id})"><i class="ti ti-check"></i></button>`:''}
       <button class="bi wab" onclick="twA(${t.id})"><i class="ti ti-brand-whatsapp"></i></button>
+      <button class="bi" onclick="openAttachmentsModal('task',${t.id},'${t.title.replace(/'/g,"\\'")}')" title="المرفقات ${getAttCount('task',t.id)?'('+getAttCount('task',t.id)+')':''}"><i class="ti ti-paperclip"></i>${getAttCount('task',t.id)?`<span style="font-size:9px;background:var(--in);color:#fff;border-radius:var(--rf);padding:0 4px;margin-right:1px">${getAttCount('task',t.id)}</span>`:''}</button>
       <button class="bi" onclick="editT(${t.id})"><i class="ti ti-edit"></i></button>
       <button class="bi dlb" onclick="delT(${t.id})"><i class="ti ti-trash"></i></button>
     </div></div>`;}
@@ -843,6 +860,10 @@ function renderNotes(){
         <div class="sk-d"><i class="ti ti-calendar" style="font-size:10px"></i> ${n.date}</div>
         <div class="sk-acts">
           ${!isDone?`<button class="sk-btn" onclick="tglNote(${n.id})" title="تم الانجاز" style="background:rgba(255,255,255,.7)"><i class="ti ti-circle-check" style="color:var(--ok)"></i></button>`:''}
+          <button class="sk-btn" onclick="openAttachmentsModal('note',${n.id},'${n.title.replace(/'/g,"\\'")}')" title="المرفقات" style="position:relative">
+            <i class="ti ti-paperclip" style="color:var(--in)"></i>
+            ${getAttCount('note',n.id)?`<span style="position:absolute;top:-4px;left:-4px;background:var(--in);color:#fff;border-radius:50%;width:14px;height:14px;font-size:9px;display:flex;align-items:center;justify-content:center">${getAttCount('note',n.id)}</span>`:''}
+          </button>
           <button class="sk-btn" onclick="shareNote(${n.id})" title="ارسال عبر واتساب"><i class="ti ti-brand-whatsapp" style="color:var(--wa)"></i></button>
           <button class="sk-btn" onclick="editNote(${n.id})" title="تعديل"><i class="ti ti-edit" style="color:#555"></i></button>
           <button class="sk-btn" onclick="delNote(${n.id})" title="حذف"><i class="ti ti-trash" style="color:var(--er)"></i></button>
@@ -1204,6 +1225,10 @@ function mcCard(m){
     <div class="mc-actions">
       ${!isDone?`<button class="mc-btn done-btn" onclick="tglMeeting(${m.id})"><i class="ti ti-check"></i>تم الاجتماع</button>`:`<button class="mc-btn" onclick="tglMeeting(${m.id})"><i class="ti ti-refresh"></i>اعادة تفعيل</button>`}
       ${!isDone&&m.status!=='cancelled'?`<button class="mc-btn cancel-btn" onclick="setMeetingStatus(${m.id},'cancelled')"><i class="ti ti-x"></i>الغاء</button>`:''}
+      <button class="mc-btn" onclick="openAttachmentsModal('meeting',${m.id},'${m.title.replace(/'/g,"\\'")}')" style="position:relative">
+        <i class="ti ti-paperclip"></i>المرفقات
+        ${getAttCount('meeting',m.id)?`<span style="background:var(--in);color:#fff;border-radius:var(--rf);font-size:9px;padding:0 5px;margin-right:2px">${getAttCount('meeting',m.id)}</span>`:''}
+      </button>
       <button class="mc-btn wa" onclick="shareMeetingWA(${m.id})"><i class="ti ti-brand-whatsapp"></i>ارسال</button>
       <button class="mc-btn" onclick="openEditMeeting(${m.id})"><i class="ti ti-edit"></i>تعديل</button>
       <button class="mc-btn" onclick="delMeeting(${m.id})" style="color:var(--er)"><i class="ti ti-trash"></i>حذف</button>
@@ -1321,7 +1346,170 @@ function shareMeetingWA(id){
   showContactPicker(msg);
 }
 
-function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
+// ─── ATTACHMENTS ──────────────────────────────────────────────────────────
+let attachments=gs('mz4_att',{});// {itemType_itemId: [{id,name,size,type,data,date}]}
+
+function saveAttachments(){
+  ss('mz4_att',attachments);
+  if(syncActive)pushAttToFB();
+}
+
+function pushAttToFB(){
+  if(!syncActive||!fbConfig._url)return;
+  const attUrl=fbConfig._url.replace('.json','/attachments.json');
+  fetch(attUrl,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(attachments)})
+    .catch(()=>{});
+}
+
+function pullAttFromFB(){
+  if(!syncActive||!fbConfig._url)return;
+  const attUrl=fbConfig._url.replace('.json','/attachments.json')+'&t='+Date.now();
+  fetch(attUrl).then(r=>r.json()).then(data=>{
+    if(data&&typeof data==='object'){
+      attachments=data;ss('mz4_att',attachments);
+    }
+  }).catch(()=>{});
+}
+
+function getAttKey(type,id){return `${type}_${id}`;}
+
+function getFileIcon(mime){
+  if(!mime)return'📎';
+  if(mime.startsWith('image/'))return'🖼';
+  if(mime.includes('pdf'))return'📄';
+  if(mime.includes('word')||mime.includes('document'))return'📝';
+  if(mime.includes('sheet')||mime.includes('excel'))return'📊';
+  if(mime.includes('presentation')||mime.includes('powerpoint'))return'📑';
+  if(mime.includes('video'))return'🎬';
+  if(mime.includes('audio'))return'🎵';
+  if(mime.includes('zip')||mime.includes('rar'))return'🗜';
+  return'📎';
+}
+
+function fmtSize(bytes){
+  if(bytes<1024)return bytes+'B';
+  if(bytes<1048576)return(bytes/1024).toFixed(1)+'KB';
+  return(bytes/1048576).toFixed(1)+'MB';
+}
+
+function openAttachmentsModal(type,id,title){
+  const key=getAttKey(type,id);
+  const atts=attachments[key]||[];
+  renderAttModal(type,id,title,atts);
+}
+
+function renderAttModal(type,id,title,atts){
+  const key=getAttKey(type,id);
+  const attHTML=atts.length?atts.map(a=>{
+    const icon=getFileIcon(a.type);
+    const isImg=a.type&&a.type.startsWith('image/');
+    return`<div class="att-item" id="att-${a.id}">
+      <div class="att-icon" style="background:var(--pr-l)">${icon}</div>
+      <div class="att-info">
+        <div class="att-name">${a.name}</div>
+        <div class="att-size">${fmtSize(a.size)} — ${a.date}</div>
+      </div>
+      <div class="att-acts">
+        ${isImg?`<button class="att-btn" onclick="previewAtt('${a.id}','${key}')" title="عرض"><i class="ti ti-eye"></i></button>`:''}
+        <button class="att-btn" onclick="downloadAtt('${a.id}','${key}')" title="تحميل"><i class="ti ti-download"></i></button>
+        <button class="att-btn del" onclick="deleteAtt('${a.id}','${key}')" title="حذف"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;}).join(''):'<div class="empty" style="padding:20px"><i class="ti ti-paperclip"></i>لا توجد مرفقات بعد</div>';
+
+  M(`<div class="mback" onclick="if(event.target===this)closeM()"><div class="modal" style="max-width:400px">
+    <div class="modal-t"><i class="ti ti-paperclip" style="color:var(--pr)"></i>المرفقات — ${title}</div>
+    <div id="att-modal-list" class="att-list">${attHTML}</div>
+    <div class="att-zone" onclick="document.getElementById('att-file-input').click()">
+      <i class="ti ti-cloud-upload"></i>
+      <span>اضغط لرفع ملف مرفق</span>
+      <span style="font-size:10px;color:var(--hi);margin-top:2px">صور، PDF، Word، Excel، وغيرها — حد 5MB</span>
+    </div>
+    <input type="file" id="att-file-input" style="display:none" multiple onchange="handleFileUpload(event,'${type}',${id},'${title}')">
+    <button class="bs2" onclick="closeM()" style="margin-top:8px">إغلاق</button>
+  </div></div>`);
+}
+
+function handleFileUpload(event,type,id,title){
+  const files=Array.from(event.target.files);
+  if(!files.length)return;
+  const key=getAttKey(type,id);
+  if(!attachments[key])attachments[key]=[];
+  let processed=0;
+  files.forEach(file=>{
+    if(file.size>5*1024*1024){toast(`الملف ${file.name} اكبر من 5MB`);processed++;if(processed===files.length)refreshAttModal(type,id,title);return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const att={id:'a'+Date.now()+'_'+Math.random().toString(36).substr(2,5),name:file.name,size:file.size,type:file.type,data:e.target.result,date:new Date().toLocaleDateString('ar')};
+      attachments[key].push(att);
+      processed++;
+      if(processed===files.length){saveAttachments();refreshAttModal(type,id,title);toast(`تم رفع ${files.length} ملف`);}
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function refreshAttModal(type,id,title){
+  const key=getAttKey(type,id);
+  const atts=attachments[key]||[];
+  const listEl=document.getElementById('att-modal-list');
+  if(listEl){
+    const attHTML=atts.length?atts.map(a=>{
+      const icon=getFileIcon(a.type);
+      const isImg=a.type&&a.type.startsWith('image/');
+      return`<div class="att-item" id="att-${a.id}">
+        <div class="att-icon" style="background:var(--pr-l)">${icon}</div>
+        <div class="att-info"><div class="att-name">${a.name}</div><div class="att-size">${fmtSize(a.size)} — ${a.date}</div></div>
+        <div class="att-acts">
+          ${isImg?`<button class="att-btn" onclick="previewAtt('${a.id}','${key}')" title="عرض"><i class="ti ti-eye"></i></button>`:''}
+          <button class="att-btn" onclick="downloadAtt('${a.id}','${key}')" title="تحميل"><i class="ti ti-download"></i></button>
+          <button class="att-btn del" onclick="deleteAtt('${a.id}','${key}')" title="حذف"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;}).join(''):'<div class="empty" style="padding:20px"><i class="ti ti-paperclip"></i>لا توجد مرفقات بعد</div>';
+    listEl.innerHTML=attHTML;
+  }
+}
+
+function previewAtt(attId,key){
+  const att=(attachments[key]||[]).find(a=>a.id===attId);
+  if(!att)return;
+  const prev=document.createElement('div');
+  prev.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px';
+  prev.onclick=e=>{if(e.target===prev)prev.remove();};
+  prev.innerHTML=`<img src="${att.data}" style="max-width:90vw;max-height:80vh;border-radius:8px;object-fit:contain">
+    <div style="display:flex;gap:10px">
+      <button onclick="downloadAtt('${attId}','${key}')" style="background:var(--pr);color:#fff;border:none;border-radius:var(--rs);padding:8px 16px;font-size:13px;cursor:pointer;font-family:var(--fn)"><i class="ti ti-download"></i> تحميل</button>
+      <button onclick="this.closest('div').parentElement.remove()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:var(--rs);padding:8px 16px;font-size:13px;cursor:pointer;font-family:var(--fn)">إغلاق</button>
+    </div>`;
+  document.body.appendChild(prev);
+}
+
+function downloadAtt(attId,key){
+  const att=(attachments[key]||[]).find(a=>a.id===attId);
+  if(!att)return;
+  const a=document.createElement('a');
+  a.href=att.data;a.download=att.name;a.click();
+}
+
+function deleteAtt(attId,key){
+  if(!confirm('هل تريد حذف هذا المرفق؟'))return;
+  attachments[key]=(attachments[key]||[]).filter(a=>a.id!==attId);
+  saveAttachments();
+  const el=document.getElementById('att-'+attId);
+  if(el)el.remove();
+  toast('تم حذف المرفق');
+}
+
+function getAttCount(type,id){
+  const key=getAttKey(type,id);
+  return(attachments[key]||[]).length;
+}
+
+function attBadge(type,id){
+  const cnt=getAttCount(type,id);
+  return cnt?`<span style="background:var(--in-l);color:#0C447C;font-size:10px;padding:1px 6px;border-radius:var(--rf);font-weight:500"><i class="ti ti-paperclip" style="font-size:10px"></i>${cnt}</span>`:'';
+}
+
+const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
 
 const nd=new Date();
 document.getElementById('dtlbl').textContent=`${DN[nd.getDay()]} ${nd.getDate()} ${MN[nd.getMonth()]} ${nd.getFullYear()}`;

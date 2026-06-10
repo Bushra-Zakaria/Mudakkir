@@ -75,6 +75,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh
 .bn{background:var(--wn-l);color:#633806}.bdo{background:var(--ok-l);color:#085041}
 .bdy{background:var(--wn-l);color:#633806}.bw{background:var(--wa-l);color:#0d5e2e}
 .bu{background:var(--er-l);color:#791F1F}
+.ba{background:#F0EBF8;color:#5B2C8D}
 .ttime{font-size:10px;color:var(--hi);display:flex;align-items:center;gap:3px}
 .tacts{display:flex;gap:4px;flex-shrink:0}
 .bi{background:none;border:1px solid var(--bd);border-radius:var(--rs);width:27px;height:27px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mu);font-size:13px;transition:all .15s}
@@ -287,6 +288,7 @@ input:focus,select:focus{border-color:var(--pr)}
           <button onclick="filterTasks('done')" id="tf-done" class="mfbtn">مكتملة</button>
           <button onclick="filterTasks('delayed')" id="tf-delayed" class="mfbtn">مؤجلة</button>
           <button onclick="filterTasks('urgent')" id="tf-urgent" class="mfbtn" style="color:var(--er);border-color:var(--er)">عاجلة</button>
+          <button onclick="filterTasks('appointment')" id="tf-appointment" class="mfbtn" style="color:#5B2C8D;border-color:#C8A8E8">مواعيد</button>
         </div>
         <button class="btn-add" onclick="openAdd()"><i class="ti ti-plus"></i>إضافة</button>
       </div>
@@ -585,7 +587,7 @@ function syncNow(){if(syncActive)pushToFB();else sp('sync');}
 
 function tc(t){
   const done=t.status==='done',del=t.status==='delayed';
-  const tb=t.type==='meeting'?'<span class="badge bm">\u0627\u062c\u062a\u0645\u0627\u0639</span>':t.type==='task'?'<span class="badge bt">\u0645\u0647\u0645\u0629</span>':'<span class="badge bn">\u0645\u0644\u0627\u062d\u0638\u0629</span>';
+  const tb=t.type==='meeting'?'<span class="badge bm">\u0627\u062c\u062a\u0645\u0627\u0639</span>':t.type==='task'?'<span class="badge bt">\u0645\u0647\u0645\u0629</span>':t.type==='appointment'?'<span class="badge ba">\u0645\u0648\u0639\u062f</span>':'<span class="badge bn">\u0645\u0644\u0627\u062d\u0638\u0629</span>';
   const sb=done?'<span class="badge bdo">\u0645\u0643\u062a\u0645\u0644</span>':del?'<span class="badge bdy">\u0645\u0624\u062c\u0644</span>':'';
   const wb=t.src==='wa'?'<span class="badge bw">\u0648\u0627\u062a\u0633\u0627\u0628</span>':'';
   const ub=(t.prio==='high'&&!done)?'<span class="badge bu">\u0639\u0627\u062c\u0644</span>':'';
@@ -751,7 +753,7 @@ function buildFullHTML(){
     ${tList.map(t=>{
       const st=t.status==='done'?'\u0645\u0643\u062a\u0645\u0644':t.status==='delayed'?'\u0645\u0624\u062c\u0644':'\u0642\u064a\u062f \u0627\u0644\u062a\u0646\u0641\u064a\u0630';
       const stc=t.status==='done'?'#1D9E75':t.status==='delayed'?'#BA7517':'#378ADD';
-      const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':'\u0645\u0644\u0627\u062d\u0638\u0629';
+      const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':t.type==='appointment'?'\u0645\u0648\u0639\u062f':'\u0645\u0644\u0627\u062d\u0638\u0629';
       return`<tr><td style="font-weight:500${t.status==='done'?';text-decoration:line-through;color:#999':''}">${t.title}${t.body?`<br><small style="color:#888;font-weight:400">${t.body}</small>`:''}</td>
       <td>${tp}</td><td>${fd(t.date)}${t.time?' '+t.time:''}</td>
       <td>${t.prio==='high'?'<span style="color:#E24B4A;font-weight:600">\u0639\u0627\u062c\u0644</span>':'\u0639\u0627\u062f\u064a'}</td>
@@ -930,7 +932,7 @@ function delC(id){if(!confirm('\u062d\u0630\u0641 \u062c\u0647\u0629 \u0627\u064
 function twA(id){
   const t=tasks.find(t=>t.id===id);if(!t)return;
   if(!contacts.length){toast('\u0623\u0636\u0641 \u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644 \u0623\u0648\u0644\u0627\u064b');return;}
-  const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':'\u0645\u0644\u0627\u062d\u0638\u0629';
+  const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':t.type==='appointment'?'\u0645\u0648\u0639\u062f':'\u0645\u0644\u0627\u062d\u0638\u0629';
   let msg=`* \u062a\u0630\u0643\u064a\u0631: ${t.title} *\n- \u0627\u0644\u0646\u0648\u0639: ${tp}\n- \u0627\u0644\u062a\u0627\u0631\u064a\u062e: ${fd(t.date)}${t.time?' - \u0627\u0644\u0633\u0627\u0639\u0629 '+t.time:''}`;
   if(t.body)msg+=`\n\n- \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644:\n${t.body}`;
   msg+='\n\n-- \u0645\u0630\u0643\u0631';
@@ -940,7 +942,7 @@ function sendViaWA(){
   if(!curN)return;const t=tasks.find(t=>t.id===curN);if(!t)return;
   if(!contacts.length){toast('\u0623\u0636\u0641 \u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644 \u0623\u0648\u0644\u0627\u064b');closeN(null);return;}
   stopAlarm();document.getElementById('nover').style.display='none';
-  const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':'\u0645\u0644\u0627\u062d\u0638\u0629';
+  const tp=t.type==='meeting'?'\u0627\u062c\u062a\u0645\u0627\u0639':t.type==='task'?'\u0645\u0647\u0645\u0629':t.type==='appointment'?'\u0645\u0648\u0639\u062f':'\u0645\u0644\u0627\u062d\u0638\u0629';
   let msg=`* \u062a\u0630\u0643\u064a\u0631: ${t.title} *\n- \u0627\u0644\u0646\u0648\u0639: ${tp}\n- \u0627\u0644\u062a\u0627\u0631\u064a\u062e: ${fd(t.date)}${t.time?' - \u0627\u0644\u0633\u0627\u0639\u0629 '+t.time:''}`;
   if(t.body)msg+=`\n\n- \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644:\n${t.body}`;
   msg+='\n\n-- \u0645\u0630\u0643\u0631';
@@ -989,7 +991,7 @@ function openAdd(){M(`<div class="mback" onclick="if(event.target===this)closeM(
     <div class="modal-t"><i class="ti ti-plus" style="color:var(--pr)"></i>\u0625\u0636\u0627\u0641\u0629 \u0645\u0647\u0645\u0629 \u0623\u0648 \u0645\u0648\u0639\u062f</div>
     <div class="fg"><label class="fl">\u0627\u0644\u0639\u0646\u0648\u0627\u0646</label><input type="text" id="mt" placeholder="\u0627\u0643\u062a\u0628 \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u0647\u0646\u0627..."></div>
     <div class="fr">
-      <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u0646\u0648\u0639</label><select id="mtp"><option value="task">\u0645\u0647\u0645\u0629</option><option value="meeting">\u0627\u062c\u062a\u0645\u0627\u0639</option><option value="note">\u0645\u0644\u0627\u062d\u0638\u0629</option></select></div>
+      <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u0646\u0648\u0639</label><select id="mtp"><option value="task">\u0645\u0647\u0645\u0629</option><option value="meeting">\u0627\u062c\u062a\u0645\u0627\u0639</option><option value="appointment">\u0645\u0648\u0639\u062f</option><option value="note">\u0645\u0644\u0627\u062d\u0638\u0629</option></select></div>
       <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u0623\u0648\u0644\u0648\u064a\u0629</label><select id="mpr"><option value="high">\u0639\u0627\u062c\u0644</option><option value="normal">\u0639\u0627\u062f\u064a</option></select></div>
     </div>
     <div class="fg"><label class="fl">\u0627\u0644\u0645\u062d\u062a\u0648\u0649 / \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644</label><textarea id="mbody" placeholder="\u0627\u0643\u062a\u0628 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629 \u0623\u0648 \u0627\u0644\u0645\u0648\u0639\u062f \u0647\u0646\u0627... (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)&#10;\u0633\u064a\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0647\u0630\u0627 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u0639\u0646\u062f \u0627\u0644\u0625\u0631\u0633\u0627\u0644 \u0639\u0628\u0631 \u0648\u0627\u062a\u0633\u0627\u0628" style="min-height:80px"></textarea></div>
@@ -1005,7 +1007,7 @@ function editT(id){const t=tasks.find(t=>t.id===id);if(!t)return;
     <div class="modal-t"><i class="ti ti-edit" style="color:var(--pr)"></i>\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0645\u0647\u0645\u0629</div>
     <div class="fg"><label class="fl">\u0627\u0644\u0639\u0646\u0648\u0627\u0646</label><input type="text" id="mt" value="${t.title.replace(/"/g,'&quot;')}"></div>
     <div class="fr">
-      <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u0646\u0648\u0639</label><select id="mtp"><option value="task"${t.type==='task'?' selected':''}>\u0645\u0647\u0645\u0629</option><option value="meeting"${t.type==='meeting'?' selected':''}>\u0627\u062c\u062a\u0645\u0627\u0639</option><option value="note"${t.type==='note'?' selected':''}>\u0645\u0644\u0627\u062d\u0638\u0629</option></select></div>
+      <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u0646\u0648\u0639</label><select id="mtp"><option value="task"${t.type==='task'?' selected':''}>\u0645\u0647\u0645\u0629</option><option value="meeting"${t.type==='meeting'?' selected':''}>\u0627\u062c\u062a\u0645\u0627\u0639</option><option value="appointment"${t.type==='appointment'?' selected':''}>\u0645\u0648\u0639\u062f</option><option value="note"${t.type==='note'?' selected':''}>\u0645\u0644\u0627\u062d\u0638\u0629</option></select></div>
       <div class="fg" style="flex:1"><label class="fl">\u0627\u0644\u062d\u0627\u0644\u0629</label><select id="mst"><option value="pending"${t.status==='pending'?' selected':''}>\u0642\u064a\u062f \u0627\u0644\u062a\u0646\u0641\u064a\u0630</option><option value="done"${t.status==='done'?' selected':''}>\u0645\u0643\u062a\u0645\u0644</option><option value="delayed"${t.status==='delayed'?' selected':''}>\u0645\u0624\u062c\u0644</option></select></div>
     </div>
     <div class="fg"><label class="fl">\u0627\u0644\u0645\u062d\u062a\u0648\u0649 / \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644</label><textarea id="mbody" style="min-height:80px" placeholder="\u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629...">${t.body||''}</textarea></div>
@@ -1291,6 +1293,7 @@ function filterTasks(type){
   else if(type==='done')list=tasks.filter(t=>t.status==='done');
   else if(type==='delayed')list=tasks.filter(t=>t.status==='delayed');
   else if(type==='urgent')list=tasks.filter(t=>t.prio==='high'&&t.status!=='done');
+  else if(type==='appointment')list=tasks.filter(t=>t.type==='appointment');
   const el2=document.getElementById('atasks');
   if(el2)el2.innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0641\u0626\u0629</div>';
 }

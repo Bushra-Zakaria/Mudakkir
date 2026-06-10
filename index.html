@@ -279,7 +279,19 @@ input:focus,select:focus{border-color:var(--pr)}
       <div class="tl" id="htasks"></div>
     </div>
 
-    <div id="panel-tasks" class="panel"><div class="tl" id="atasks"></div></div>
+    <div id="panel-tasks" class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="filterTasks('all')" id="tf-all" class="mfbtn mfbtn-active">الكل</button>
+          <button onclick="filterTasks('pending')" id="tf-pending" class="mfbtn">قيد التنفيذ</button>
+          <button onclick="filterTasks('done')" id="tf-done" class="mfbtn">مكتملة</button>
+          <button onclick="filterTasks('delayed')" id="tf-delayed" class="mfbtn">مؤجلة</button>
+          <button onclick="filterTasks('urgent')" id="tf-urgent" class="mfbtn" style="color:var(--er);border-color:var(--er)">عاجلة</button>
+        </div>
+        <button class="btn-add" onclick="openAdd()"><i class="ti ti-plus"></i>إضافة</button>
+      </div>
+      <div class="tl" id="atasks"></div>
+    </div>
 
     <div id="panel-meetings" class="panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -299,15 +311,28 @@ input:focus,select:focus{border-color:var(--pr)}
     </div>
 
     <div id="panel-calendar" class="panel">
-      <div class="cal-nav">
-        <button class="cal-nb" onclick="chM(-1)"><i class="ti ti-chevron-right"></i></button>
-        <div class="cal-nt" id="cmt"></div>
-        <button class="cal-nb" onclick="chM(1)"><i class="ti ti-chevron-left"></i></button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button onclick="filterCalendar('month')" id="cf-month" class="mfbtn mfbtn-active">هذا الشهر</button>
+        <button onclick="filterCalendar('today')" id="cf-today" class="mfbtn">اليوم</button>
+        <button onclick="filterCalendar('week')" id="cf-week" class="mfbtn">هذا الأسبوع</button>
+        <button onclick="filterCalendar('upcoming')" id="cf-upcoming" class="mfbtn">القادمة</button>
+        <button onclick="filterCalendar('all')" id="cf-all" class="mfbtn">الكل</button>
       </div>
-      <div class="cg" id="calh"></div>
-      <div class="cg" id="cald"></div>
-      <div class="sec-hdr"><div class="sec-t" id="cetitle">مواعيد الشهر</div></div>
-      <div class="tl" id="calevents"></div>
+      <div id="cal-filter-list" style="display:none">
+        <div class="sec-hdr"><div class="sec-t" id="cal-filter-title"></div></div>
+        <div class="tl" id="cal-filter-tasks"></div>
+      </div>
+      <div id="cal-grid-view">
+        <div class="cal-nav">
+          <button class="cal-nb" onclick="chM(-1)"><i class="ti ti-chevron-right"></i></button>
+          <div class="cal-nt" id="cmt"></div>
+          <button class="cal-nb" onclick="chM(1)"><i class="ti ti-chevron-left"></i></button>
+        </div>
+        <div class="cg" id="calh"></div>
+        <div class="cg" id="cald"></div>
+        <div class="sec-hdr"><div class="sec-t" id="cetitle">مواعيد الشهر</div></div>
+        <div class="tl" id="calevents"></div>
+      </div>
     </div>
 
     <div id="panel-sticky" class="panel">
@@ -593,7 +618,8 @@ function renderAll(){
   const aa=document.getElementById('alertarea');
   aa.innerHTML=urg.length?`<div class="alert-bar"><i class="ti ti-bell-exclamation" style="color:var(--er);font-size:17px"></i><div style="flex:1;font-size:12px;color:var(--er);font-weight:500">\u0644\u062f\u064a\u0643 ${urg.length} \u0645\u0647\u0645\u0629 \u0639\u0627\u062c\u0644\u0629 \u0627\u0644\u064a\u0648\u0645</div><button style="background:none;border:none;cursor:pointer;color:var(--er)" onclick="this.parentElement.remove()"><i class="ti ti-x"></i></button></div>`:'';
   filterHome(curFilter);
-  document.getElementById('atasks').innerHTML=tasks.length?tasks.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645</div>';
+  const activeTaskFilter=document.querySelector('[id^="tf-"].mfbtn-active');
+  filterTasks(activeTaskFilter?activeTaskFilter.id.replace('tf-',''):'all');
   document.getElementById('watasks').innerHTML=tasks.filter(t=>t.src==='wa').map(tc).join('')||'<div class="empty"><i class="ti ti-brand-whatsapp"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0645\u0633\u062a\u0648\u0631\u062f\u0629</div>';
   document.getElementById('r0').textContent=tasks.length;
   if(document.getElementById('r0s'))document.getElementById('r0s').textContent=`${done.length} \u0645\u0643\u062a\u0645\u0644\u0629`;
@@ -1257,8 +1283,56 @@ function renderMeetings(){
   if(nb){const uc=meetings.filter(m=>m.status==='upcoming').length;nb.textContent=uc;nb.style.display=uc?'inline':'none';}
 }
 
+function filterTasks(type){
+  document.querySelectorAll('[id^="tf-"]').forEach(b=>b.classList.remove('mfbtn-active'));
+  const el=document.getElementById('tf-'+type);if(el)el.classList.add('mfbtn-active');
+  let list=tasks;
+  if(type==='pending')list=tasks.filter(t=>t.status==='pending');
+  else if(type==='done')list=tasks.filter(t=>t.status==='done');
+  else if(type==='delayed')list=tasks.filter(t=>t.status==='delayed');
+  else if(type==='urgent')list=tasks.filter(t=>t.prio==='high'&&t.status!=='done');
+  const el2=document.getElementById('atasks');
+  if(el2)el2.innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0641\u0626\u0629</div>';
+}
+
+let calFilterMode='month';
+function filterCalendar(type){
+  calFilterMode=type;
+  document.querySelectorAll('[id^="cf-"]').forEach(b=>b.classList.remove('mfbtn-active'));
+  const el=document.getElementById('cf-'+type);if(el)el.classList.add('mfbtn-active');
+  const gridView=document.getElementById('cal-grid-view');
+  const listView=document.getElementById('cal-filter-list');
+  const ts=tstr();
+  const now=new Date();
+  if(type==='month'){
+    gridView.style.display='block';
+    listView.style.display='none';
+    renderCal();
+    return;
+  }
+  gridView.style.display='none';
+  listView.style.display='block';
+  let list=[];
+  let title='';
+  if(type==='today'){
+    list=tasks.filter(t=>(t.date===ts||t.delayDate===ts)&&t.status!=='done');
+    title='\u0645\u0648\u0627\u0639\u064a\u062f \u0627\u0644\u064a\u0648\u0645';
+  } else if(type==='week'){
+    const weekEnd=new Date(now);weekEnd.setDate(now.getDate()+7);
+    list=tasks.filter(t=>{const d=t.delayDate||t.date;return d&&d>=ts&&d<=weekEnd.toISOString().split('T')[0]&&t.status!=='done';});
+    title='\u0645\u0648\u0627\u0639\u064a\u062f \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u0642\u0627\u062f\u0645';
+  } else if(type==='upcoming'){
+    list=tasks.filter(t=>{const d=t.delayDate||t.date;return d&&d>=ts&&t.status!=='done';}).sort((a,b)=>(a.delayDate||a.date).localeCompare(b.delayDate||b.date));
+    title='\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f \u0627\u0644\u0642\u0627\u062f\u0645\u0629';
+  } else if(type==='all'){
+    list=[...tasks].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    title='\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f';
+  }
+  document.getElementById('cal-filter-title').textContent=title+' ('+list.length+')';
+  document.getElementById('cal-filter-tasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0648\u0627\u0639\u064a\u062f</div>';
+}
+
 function filterMeetings(f){
-  curMeetingFilter=f;
   document.querySelectorAll('.mfbtn').forEach(b=>b.classList.remove('mfbtn-active'));
   const el=document.getElementById('mf-'+f);if(el)el.classList.add('mfbtn-active');
   renderMeetings();

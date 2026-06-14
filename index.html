@@ -644,11 +644,23 @@ function filterHome(type){
   document.querySelectorAll('#sc0,#sc1,#sc2,#sc3').forEach(s=>s.classList.remove('af'));
   const map={today:'sc0',done:'sc1',delayed:'sc2',meeting:'sc3'};
   if(map[type])document.getElementById(map[type]).classList.add('af');
-  const ftitles={today:'\u0645\u0647\u0627\u0645 \u0627\u0644\u064a\u0648\u0645',done:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0643\u062a\u0645\u0644\u0629',delayed:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0624\u062c\u0644\u0629',meeting:'\u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639\u0627\u062a',urgent:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0639\u0627\u062c\u0644\u0629',all:'\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0647\u0627\u0645'};
+  const ftitles={today:'\u0645\u0647\u0627\u0645 \u0627\u0644\u064a\u0648\u0645',done:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0643\u062a\u0645\u0644\u0629',delayed:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0645\u0624\u062c\u0644\u0629',meeting:'\u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639\u0627\u062a',urgent:'\u0627\u0644\u0645\u0647\u0627\u0645 \u0627\u0644\u0639\u0627\u062c\u0644\u0629',all:'\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u0647\u0627\u0645',notes:'\u0627\u0644\u0645\u0644\u0627\u062d\u0638\u0627\u062a'};
   document.getElementById('hft').textContent=ftitles[type]||'\u0627\u0644\u0645\u0647\u0627\u0645';
   const ts=tstr();
-  let list=type==='today'?tasks.filter(t=>t.date===ts&&t.status!=='done'):type==='done'?tasks.filter(t=>t.status==='done'):type==='delayed'?tasks.filter(t=>t.status==='delayed'):type==='meeting'?tasks.filter(t=>t.type==='meeting'):type==='urgent'?tasks.filter(t=>t.prio==='high'&&t.status!=='done'):tasks;
-  document.getElementById('htasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0641\u0626\u0629</div>';
+  const el=document.getElementById('htasks');
+  if(type==='meeting'){
+    const mlist=smartSort([...meetings],'date','time','status','done');
+    el.innerHTML=mlist.length?mlist.map(m=>mcCard(m)).join(''):'<div class="empty"><i class="ti ti-users-group"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u062a</div>';
+    return;
+  }
+  let raw=[];
+  if(type==='today') raw=tasks.filter(t=>(t.date===ts||t.delayDate===ts)&&t.status!=='done');
+  else if(type==='done') raw=tasks.filter(t=>t.status==='done');
+  else if(type==='delayed') raw=tasks.filter(t=>t.status==='delayed');
+  else if(type==='urgent') raw=tasks.filter(t=>t.prio==='high'&&t.status!=='done');
+  else raw=[...tasks];
+  const list=smartSort(raw,'date','time','status','done');
+  el.innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checks"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0641\u0626\u0629</div>';
 }
 
 // ─── REPORTS ─────────────────────────────────────────────────────────────
@@ -874,7 +886,8 @@ function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}re
 function renderNotes(){
   const prioLabel={high:'\u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u0627\u0647\u0645\u064a\u0629',medium:'\u0645\u062a\u0648\u0633\u0637 \u0627\u0644\u0627\u0647\u0645\u064a\u0629',normal:'\u0639\u0627\u062f\u064a'};
   const prioColor={high:'var(--er)',medium:'var(--wn)',normal:'var(--ok)'};
-  document.getElementById('sgrid').innerHTML=notes.map(n=>{
+  const sortedNotes=smartSort([...notes],'date2','time','status','done').map(n=>n.id?n:n);
+  document.getElementById('sgrid').innerHTML=sortedNotes.map(n=>{
     const hasPrio=n.prio&&n.prio!=='normal';
     const hasDate=n.date2;
     const isToday=n.date2===tstr();
@@ -1278,7 +1291,7 @@ function renderMeetings(){
   if(curMeetingFilter==='upcoming')list=meetings.filter(m=>m.status==='upcoming'||m.status==='inprogress');
   else if(curMeetingFilter==='done')list=meetings.filter(m=>m.status==='done');
   else if(curMeetingFilter==='cancelled')list=meetings.filter(m=>m.status==='cancelled');
-  list=[...list].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  list=smartSort([...list],'date','time','status','done');
   const el=document.getElementById('meetings-list');
   if(el)el.innerHTML=list.length?list.map(mcCard).join(''):'<div class="empty"><i class="ti ti-users-group"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u062a — \u0627\u0636\u063a\u0637 \u0627\u062c\u062a\u0645\u0627\u0639 \u062c\u062f\u064a\u062f</div>';
   const nb=document.getElementById('nbtm');
@@ -1288,12 +1301,13 @@ function renderMeetings(){
 function filterTasks(type){
   document.querySelectorAll('[id^="tf-"]').forEach(b=>b.classList.remove('mfbtn-active'));
   const el=document.getElementById('tf-'+type);if(el)el.classList.add('mfbtn-active');
-  let list=tasks;
-  if(type==='pending')list=tasks.filter(t=>t.status==='pending');
-  else if(type==='done')list=tasks.filter(t=>t.status==='done');
-  else if(type==='delayed')list=tasks.filter(t=>t.status==='delayed');
-  else if(type==='urgent')list=tasks.filter(t=>t.prio==='high'&&t.status!=='done');
-  else if(type==='appointment')list=tasks.filter(t=>t.type==='appointment');
+  let raw=tasks;
+  if(type==='pending')raw=tasks.filter(t=>t.status==='pending');
+  else if(type==='done')raw=tasks.filter(t=>t.status==='done');
+  else if(type==='delayed')raw=tasks.filter(t=>t.status==='delayed');
+  else if(type==='urgent')raw=tasks.filter(t=>t.prio==='high'&&t.status!=='done');
+  else if(type==='appointment')raw=tasks.filter(t=>t.type==='appointment');
+  const list=smartSort([...raw],'date','time','status','done');
   const el2=document.getElementById('atasks');
   if(el2)el2.innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-checkbox"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0647\u0627\u0645 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0641\u0626\u0629</div>';
 }
@@ -1333,6 +1347,18 @@ function filterCalendar(type){
   }
   document.getElementById('cal-filter-title').textContent=title+' ('+list.length+')';
   document.getElementById('cal-filter-tasks').innerHTML=list.length?list.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0648\u0627\u0639\u064a\u062f</div>';
+}
+
+
+function smartSort(list, dateField, timeField, statusField, doneVal) {
+  const getKey = (item) => {
+    const d = item[dateField] || '9999-99-99';
+    const t = item[timeField] || '99:99';
+    return d + 'T' + t;
+  };
+  const active = list.filter(i => i[statusField] !== doneVal).sort((a,b) => getKey(a).localeCompare(getKey(b)));
+  const done   = list.filter(i => i[statusField] === doneVal).sort((a,b) => getKey(b).localeCompare(getKey(a)));
+  return [...active, ...done];
 }
 
 function filterMeetings(f){

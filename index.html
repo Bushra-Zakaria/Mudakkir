@@ -273,6 +273,7 @@ input:focus,select:focus{border-color:var(--pr)}
       <div class="sec-hdr">
         <div class="sec-t" id="hft">مهام اليوم</div>
         <div style="display:flex;gap:6px;align-items:center">
+          <button id="notifbtn" onclick="toggleNotifPerm()" style="background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:4px 9px;font-size:11px;cursor:pointer;color:var(--mu);display:flex;align-items:center;gap:4px;font-family:var(--fn)"><i class="ti ti-bell" id="notificon"></i></button>
           <button id="sndbtn" onclick="toggleSound()" style="background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:4px 9px;font-size:11px;cursor:pointer;color:var(--mu);display:flex;align-items:center;gap:4px;font-family:var(--fn)"><i class="ti ti-volume" id="sndicon"></i><span id="sndlbl">صوت</span></button>
           <button onclick="filterHome('all')" style="background:none;border:1px solid var(--bd);border-radius:var(--rs);padding:4px 9px;font-size:11px;cursor:pointer;color:var(--mu);font-family:var(--fn)">الكل</button>
         </div>
@@ -878,9 +879,15 @@ function renderCal(){
   for(let d=1;d<=dim;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const it=ds===tstr(),he=tasks.some(t=>t.date===ds||t.delayDate===ds);h+=`<div class="cd${it?' today':''}${he?' hev':''}" onclick="fbd('${ds}')">${d}</div>`;}
   document.getElementById('cald').innerHTML=h;
   const ev=tasks.filter(t=>t.date&&t.date.startsWith(`${calY}-${String(calM+1).padStart(2,'0')}`));
-  document.getElementById('calevents').innerHTML=ev.length?ev.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0648\u0627\u0639\u064a\u062f</div>';
+  const sorted=smartSort([...ev],'date','time','status','done');
+  document.getElementById('calevents').innerHTML=sorted.length?sorted.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar"></i>\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0648\u0627\u0639\u064a\u062f</div>';
 }
-function fbd(ds){document.getElementById('cetitle').textContent=`\u0645\u0648\u0627\u0639\u064a\u062f ${fd(ds)}`;const ev=tasks.filter(t=>t.date===ds||t.delayDate===ds);document.getElementById('calevents').innerHTML=ev.length?ev.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>\u0644\u0627 \u0645\u0648\u0627\u0639\u064a\u062f \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u064a\u0648\u0645</div>';}
+function fbd(ds){
+  document.getElementById('cetitle').textContent=`\u0645\u0648\u0627\u0639\u064a\u062f ${fd(ds)}`;
+  const ev=tasks.filter(t=>t.date===ds||t.delayDate===ds);
+  const sorted=smartSort([...ev],'date','time','status','done');
+  document.getElementById('calevents').innerHTML=sorted.length?sorted.map(tc).join(''):'<div class="empty"><i class="ti ti-calendar-off"></i>\u0644\u0627 \u0645\u0648\u0627\u0639\u064a\u062f \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u064a\u0648\u0645</div>';
+}
 function chM(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}renderCal();}
 
 function renderNotes(){
@@ -1147,6 +1154,50 @@ function parseWA(){const txt=document.getElementById('wainput').value.trim();if(
   r.innerHTML=`<i class="ti ti-check" style="color:var(--ok)"></i> \u062a\u0645 \u0627\u0644\u0627\u0633\u062a\u062e\u0631\u0627\u062c — ${title}<br>\u0627\u0644\u062a\u0627\u0631\u064a\u062e: ${fd(date)}${time?' \u0627\u0644\u0633\u0627\u0639\u0629 '+time:''}`;
   document.getElementById('wainput').value='';renderAll();toast('\u062a\u0645 \u0627\u0633\u062a\u064a\u0631\u0627\u062f \u0627\u0644\u0645\u0648\u0639\u062f');}
 
+function updateNotifBtn(){
+  const btn=document.getElementById('notifbtn');
+  const icon=document.getElementById('notificon');
+  if(!btn||!icon)return;
+  if(!('Notification' in window)){
+    btn.style.display='none';return;
+  }
+  if(Notification.permission==='granted'){
+    icon.className='ti ti-bell';
+    btn.style.color='var(--ok)';btn.style.borderColor='var(--ok)';
+    btn.title='\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0645\u0641\u0639\u0644\u0629 \u2014 \u0627\u0636\u063a\u0637 \u0644\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a';
+  } else if(Notification.permission==='denied'){
+    icon.className='ti ti-bell-off';
+    btn.style.color='var(--er)';btn.style.borderColor='var(--er)';
+    btn.title='\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0645\u062d\u0638\u0648\u0631\u0629 \u2014 \u0641\u0639\u0651\u0644\u0647\u0627 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d';
+  } else {
+    icon.className='ti ti-bell-question';
+    btn.style.color='var(--wn)';btn.style.borderColor='var(--wn)';
+    btn.title='\u0627\u0636\u063a\u0637 \u0644\u062a\u0641\u0639\u064a\u0644 \u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0633\u0637\u062d \u0627\u0644\u0645\u0643\u062a\u0628';
+  }
+}
+
+function toggleNotifPerm(){
+  if(!('Notification' in window)){
+    toast('\u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a');return;
+  }
+  if(Notification.permission==='granted'){
+    // Test notification
+    sendOSNotif('\u0645\u064f\u0630\u0643\u0651\u0650\u0631','\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u062a\u0639\u0645\u0644 \u0628\u0634\u0643\u0644 \u0635\u062d\u064a\u062d \u2705','test');
+    toast('\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0645\u0641\u0639\u0644\u0629 \u2014 \u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0625\u0634\u0639\u0627\u0631 \u062a\u062c\u0631\u064a\u0628\u064a');
+  } else {
+    Notification.requestPermission().then(p=>{
+      updateNotifBtn();
+      if(p==='granted'){
+        toast('\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u2705');
+        sendOSNotif('\u0645\u064f\u0630\u0643\u0651\u0650\u0631','\u0633\u062a\u0635\u0644\u0643 \u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f \u062d\u062a\u0649 \u0644\u0648 \u0643\u0627\u0646 \u0627\u0644\u062a\u0628\u0648\u064a\u0628 \u0641\u064a \u0627\u0644\u062e\u0644\u0641\u064a\u0629 \u2705','welcome');
+      } else {
+        toast('\u064a\u0631\u062c\u0649 \u0627\u0644\u0633\u0645\u0627\u062d \u0644\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d');
+      }
+    });
+  }
+}
+
+
 function updateSoundBtn(){
   document.getElementById('sndicon').className=soundOn?'ti ti-volume':'ti ti-volume-off';
   document.getElementById('sndlbl').textContent=soundOn?'\u0635\u0648\u062a':'\u0635\u0627\u0645\u062a';
@@ -1175,9 +1226,41 @@ function playAlarm(){
 function startAlarm(){stopAlarm();playAlarm();alarmInt=setInterval(()=>{if(document.getElementById('nover').style.display==='flex')playAlarm();else stopAlarm();},3500);}
 function stopAlarm(){if(alarmInt){clearInterval(alarmInt);alarmInt=null;}}
 
+function sendOSNotif(title, body, tag){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){
+    try{
+      const n=new Notification('\u0645\u064f\u0630\u0643\u0651\u0650\u0631: '+title,{
+        body:body,
+        tag:tag||'mudakkir',
+        icon:'https://bushra-zakaria.github.io/Mudakkir/icon.png',
+        badge:'https://bushra-zakaria.github.io/Mudakkir/icon.png',
+        requireInteraction:true,
+        vibrate:[500,200,500]
+      });
+      n.onclick=()=>{window.focus();n.close();};
+    }catch(e){}
+  } else if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted')sendOSNotif(title,body,tag);
+    });
+  }
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){toast('\u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a');return;}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted')toast('\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u2705');
+    else toast('\u062a\u0645 \u0631\u0641\u0636 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u2014 \u0641\u0639\u0651\u0644\u0647\u0627 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u062a\u0635\u0641\u062d');
+  });
+}
+
 function fireNotif(id){
   const t=tasks.find(t=>t.id===id);if(!t||t.status==='done')return;
   curN=id;
+  // OS notification (works even when tab is in background)
+  sendOSNotif(t.title, fd(t.date)+(t.time?' \u0627\u0644\u0633\u0627\u0639\u0629 '+t.time:''), 'task-'+id);
+  // In-app notification
   document.getElementById('ntitle').textContent='\u062a\u0630\u0643\u064a\u0631: '+t.title;
   document.getElementById('nbody').textContent=`${fd(t.date)}${t.time?' — \u0627\u0644\u0633\u0627\u0639\u0629 '+t.time:''}\n\n\u0647\u0630\u0627 \u0627\u0644\u062a\u0630\u0643\u064a\u0631 \u064a\u0628\u0642\u0649 \u0646\u0634\u0637\u0627\u064b \u062d\u062a\u0649 \u062a\u063a\u0644\u0642\u0647 \u064a\u062f\u0648\u064a\u0627\u064b.`;
   const ic=document.getElementById('nbellicon'),mu=document.getElementById('nbellmuted');
@@ -1226,6 +1309,7 @@ function chkAlarms(){
 function fireNoteNotif(id){
   const n=notes.find(n=>n.id===id);if(!n)return;
   curN='note_'+id;
+  sendOSNotif(n.title, n.text.substring(0,80), 'note-'+id);
   document.getElementById('ntitle').textContent='\u0645\u0644\u0627\u062d\u0638\u0629: '+n.title;
   document.getElementById('nbody').textContent=`${n.text}\n\n\u0647\u0630\u0627 \u0627\u0644\u062a\u0630\u0643\u064a\u0631 \u064a\u0628\u0642\u0649 \u0646\u0634\u0637\u0627\u064b \u062d\u062a\u0649 \u062a\u063a\u0644\u0642\u0647 \u064a\u062f\u0648\u064a\u0627\u064b.`;
   document.getElementById('nbellicon').className='ti ti-bell-ringing nbell';
@@ -1622,9 +1706,9 @@ function toast(msg){const el=document.createElement('div');el.className='toast';
 const nd=new Date();
 document.getElementById('dtlbl').textContent=DN[nd.getDay()]+' '+nd.getDate()+' '+MN[nd.getMonth()]+' '+nd.getFullYear();
 if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-setInterval(chkAlarms,30000);
+setInterval(chkAlarms,60000);
 if(fbConfig)initFirebase();
-updateSoundBtn();renderAll();chkAlarms();
+updateSoundBtn();updateNotifBtn();renderAll();chkAlarms();
 document.addEventListener('click',e=>{unlockAudio();const sb=document.getElementById('sb');if(sb.classList.contains('open')&&!sb.contains(e.target)&&!e.target.closest('.hamburger'))sb.classList.remove('open');});
 document.addEventListener('touchstart',()=>unlockAudio(),{once:true});
 
